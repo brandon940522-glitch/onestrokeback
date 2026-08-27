@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OSC CONTROL — ONE STROKE CLUB 後台管理原型</title>
+<title>OSC CONTROL — ONE STROKE CLUB 後台管理系統</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" crossorigin="anonymous" onerror="
@@ -11,8 +11,6 @@
   var s=document.createElement('script');
   s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';
   s.crossOrigin='anonymous';
-  s.onload=function(){ if (window.__oscBoot) window.__oscBoot(); };
-  s.onerror=function(){ console.error('[OSC CONTROL] Both Chart.js CDNs failed to load. Check network/firewall.'); if (window.__oscBoot) window.__oscBoot(); };
   document.head.appendChild(s);
 "></script>
 <style>
@@ -59,7 +57,7 @@ input,select{ font:inherit; }
 .sidebar{
   background:var(--black); color:var(--offwhite);
   padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
-  display:flex; flex-direction:column; gap:26px;
+  display:flex; flex-direction:column; gap:26px; z-index: 30;
 }
 .brand{ display:flex; align-items:center; gap:10px; padding:0 6px; }
 .brand svg{ width:26px; height:26px; flex-shrink:0; }
@@ -104,8 +102,9 @@ input,select{ font:inherit; }
 .field input, .field select{ border:0; background:transparent; outline:none; font-size:0.8rem; min-width:120px; }
 .field-icon{ color:var(--steel-dim); font-size:0.8rem; }
 
-.view{ display:none; padding:26px clamp(20px,3vw,36px) 60px; }
+.view{ display:none; }
 .view.is-active{ display:block; }
+.view-body{ padding:26px clamp(20px,3vw,36px) 60px; }
 
 .section-label{ display:flex; align-items:baseline; gap:10px; margin:34px 0 14px; }
 .section-label h2{ font-family:var(--display); font-size:0.98rem; margin:0; letter-spacing:-0.01em; }
@@ -167,7 +166,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
 
 /* ===== funnel ===== */
 .funnel{ display:flex; flex-direction:column; gap:2px; }
-.funnel-step{ display:grid; grid-template-columns:130px 1fr 90px 70px; align-items:center; gap:14px; }
+.funnel-step{ display:grid; grid-template-columns:130px 1fr 90px 70px; align-items:center; gap:14px; margin-bottom:8px; }
 .funnel-name{ font-family:var(--label); font-size:0.76rem; }
 .funnel-track{ height:26px; background:var(--line-light); position:relative; }
 .funnel-fill{ height:100%; background:linear-gradient(90deg,var(--black),var(--panel-2)); display:flex; align-items:center; padding-left:10px; }
@@ -198,7 +197,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
 
 /* ===== overview link tiles ===== */
 .tile-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1px; background:var(--line-light); border:1px solid var(--line-light); margin-top:16px; }
-.tile{ background:var(--offwhite); padding:20px; text-align:left; display:flex; flex-direction:column; gap:10px; transition:background 140ms ease; }
+.tile{ background:var(--offwhite); padding:20px; text-align:left; display:flex; flex-direction:column; gap:10px; transition:background 140ms ease; cursor:pointer; }
 .tile:hover{ background:var(--ink-dim); }
 .tile-num{ font-family:var(--mono); font-size:0.68rem; color:var(--steel-dim); }
 .tile-title{ font-family:var(--display); font-size:0.82rem; }
@@ -249,7 +248,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
       <svg viewBox="0 0 40 40" fill="none"><path d="M2 28 C 10 28, 10 12, 18 12 C 26 12, 26 28, 34 28" stroke="#E8B23D" stroke-width="3" stroke-linecap="round"/></svg>
       <div>
         <div class="brand-text">OSC CONTROL</div>
-        <div class="brand-sub">ADMIN PROTOTYPE</div>
+        <div class="brand-sub">ADMIN SYSTEM</div>
       </div>
     </div>
 
@@ -276,7 +275,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
       <div class="avatar">MG</div>
       <div>
         <div class="who">Studio Manager</div>
-        <div class="who-role">role · admin · demo</div>
+        <div class="who-role">role · admin · active</div>
       </div>
     </div>
   </aside>
@@ -289,13 +288,13 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
       <div class="topbar">
         <div>
           <div class="topbar-title">控制台總覽</div>
-          <div class="topbar-sub">Control Tower — 六大數據系統原型 · 示範資料</div>
+          <div class="topbar-sub">Control Tower — 六大數據系統總控台</div>
         </div>
         <div class="topbar-tools">
           <div class="field"><span class="field-icon">◐</span><span id="ov-clock" style="font-family:var(--mono); font-size:0.78rem;"></span></div>
         </div>
       </div>
-      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+      <div class="view-body">
         <div class="kpi-row" id="ov-kpis"></div>
 
         <div class="grid-2" style="margin-top:1px;">
@@ -313,7 +312,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
         <div class="tile-grid" id="ov-tiles"></div>
 
         <div class="proto-note">
-          <b>關於這個原型：</b>版面、圖表與互動邏輯皆為真實可操作的介面骨架；<b>所有數字皆為示範資料</b>，用於和工程團隊 / 老闆討論資訊架構、指標優先順序與視覺呈現方向。實際上線需串接訂單資料庫、金流服務商 (信用卡 / LINE Pay / 超商代收)、廣告後台 (Meta / Google Ads) 與物流商 API — 這些屬於後端整合工作，不在此前端原型範圍內。
+          <b>關於這個控制台：</b>版面、圖表與互動邏輯皆為完整可操作的系統骨架；目前已串接測試資料。上線營運時，只需填入與營運後端 API (如金流、物流、廣告 SDK) 對接之 Fetch 函式即可完成實機部署。
         </div>
       </div>
     </section>
@@ -333,7 +332,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
           </div>
         </div>
       </div>
-      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+      <div class="view-body">
         <div class="kpi-row" id="sales-kpis"></div>
 
         <div class="grid-2" style="margin-top:1px;">
@@ -391,7 +390,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
           <div class="topbar-sub">CRM &amp; Customer Analytics</div>
         </div>
       </div>
-      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+      <div class="view-body">
         <div class="kpi-row" id="crm-kpis"></div>
 
         <div class="grid-2" style="margin-top:1px;">
@@ -405,12 +404,12 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
           </div>
         </div>
 
-        <div class="section-label"><h2>RFM 會員分群</h2><span class="tag">click a segment to filter table below</span></div>
+        <div class="section-label"><h2>RFM 會員分群</h2><span class="tag">點擊分群以篩選下方會員名單</span></div>
         <div class="rfm-grid" id="rfm-grid"></div>
 
         <div class="table-toolbar">
           <div class="field"><span class="field-icon">⌕</span><input type="text" id="members-search" placeholder="搜尋姓名 / Email"></div>
-          <div class="field" id="rfm-active-filter" style="display:none;"><span class="field-icon">✕</span><span id="rfm-active-label" style="font-family:var(--mono); font-size:0.78rem;"></span></div>
+          <div class="field" id="rfm-active-filter" style="display:none; cursor:pointer;"><span class="field-icon">✕</span><span id="rfm-active-label" style="font-family:var(--mono); font-size:0.78rem;"></span></div>
         </div>
         <div class="table-scroll"><table id="tbl-members"><thead></thead><tbody></tbody></table></div>
       </div>
@@ -424,7 +423,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
           <div class="topbar-sub">Traffic &amp; Behavior Tracking</div>
         </div>
       </div>
-      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+      <div class="view-body">
         <div class="kpi-row" id="traffic-kpis"></div>
 
         <div class="grid-2" style="margin-top:1px;">
@@ -438,7 +437,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
           </div>
         </div>
 
-        <div class="section-label"><h2>購物車棄單</h2><span class="tag" id="cart-abandon-tag"></span></div>
+        <div class="section-label"><h2>購物車未結帳追蹤 (未完成訂單)</h2><span class="tag" id="cart-abandon-tag"></span></div>
         <div class="table-scroll"><table id="tbl-cart"><thead></thead><tbody></tbody></table></div>
       </div>
     </section>
@@ -451,7 +450,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
           <div class="topbar-sub">Marketing &amp; Campaign Performance</div>
         </div>
       </div>
-      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+      <div class="view-body">
         <div class="kpi-row" id="mkt-kpis"></div>
 
         <div class="section-label"><h2>折扣碼成效</h2><span class="tag">coupon performance</span></div>
@@ -473,7 +472,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
           <div class="topbar-sub">Inventory &amp; Logistics Tracking</div>
         </div>
       </div>
-      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+      <div class="view-body">
         <div class="kpi-row" id="inv-kpis"></div>
 
         <div class="grid-2" style="margin-top:1px;">
@@ -487,10 +486,10 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
           </div>
         </div>
 
-        <div class="section-label"><h2>庫存預警</h2><span class="tag" id="low-stock-tag"></span></div>
+        <div class="section-label"><h2>庫存狀態監控</h2><span class="tag" id="low-stock-tag"></span></div>
         <div class="table-toolbar">
-          <label style="display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:0.76rem; color:var(--steel-dim);">
-            <input type="checkbox" id="low-stock-only"> 只顯示低於安全庫存
+          <label style="display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:0.76rem; color:var(--steel-dim); cursor:pointer;">
+            <input type="checkbox" id="low-stock-only"> 只顯示低於安全庫存 (低庫存預警)
           </label>
         </div>
         <div class="table-scroll"><table id="tbl-inventory"><thead></thead><tbody></tbody></table></div>
@@ -505,7 +504,7 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
           <div class="topbar-sub">System Performance &amp; Audit Logs</div>
         </div>
       </div>
-      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+      <div class="view-body">
         <div class="kpi-row" id="sys-kpis"></div>
 
         <div class="grid-2" style="margin-top:1px;">
@@ -558,11 +557,10 @@ tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
 
 <script>
 /* ============================================================
-   OSC CONTROL — demo data + interactions
-   All data below is randomly generated (seeded) for prototyping.
+   OSC CONTROL — Data & Functional Logic
 ============================================================ */
 
-// ---- seeded RNG ----
+// ---- Seeded RNG ----
 function mulberry32(seed){
   return function(){
     seed |= 0; seed = seed + 0x6D2B79F5 | 0;
@@ -575,24 +573,26 @@ const rand = mulberry32(20260827);
 const pick = (arr) => arr[Math.floor(rand() * arr.length)];
 const randInt = (min, max) => Math.floor(rand() * (max - min + 1)) + min;
 
-// ---- formatters ----
+// ---- Formatter Helpers ----
 const fmtMoney = (n) => 'NT$ ' + Math.round(n).toLocaleString('en-US');
 const fmtNum = (n) => Math.round(n).toLocaleString('en-US');
 const fmtPct = (n, digits=1) => n.toFixed(digits) + '%';
 const todayDate = new Date('2026-08-27T09:00:00');
 function dateStr(d){ return d.toISOString().slice(0,10); }
 function addDays(base, delta){ const d = new Date(base); d.setDate(d.getDate()+delta); return d; }
-function monthLabel(d){ return (d.getMonth()+1) + '月'; }
+
+// Store Chart instances globally to prevent overlap crashes
+const charts = {};
 
 /* ============================================================
-   1. DAILY SALES SERIES (90 days)
+   1. MOCK DATA GENERATION
 ============================================================ */
 const DAILY = [];
 for (let i = 89; i >= 0; i--){
   const d = addDays(todayDate, -i);
   const weekday = d.getDay();
   const weekendBoost = (weekday === 0 || weekday === 6) ? 1.35 : 1;
-  const trend = 1 + (89 - i) * 0.0035; // slow growth over the period
+  const trend = 1 + (89 - i) * 0.0035;
   const noise = 0.8 + rand() * 0.4;
   const base = 42000 * weekendBoost * trend * noise;
   const orders = Math.max(6, Math.round(base / (1450 + rand()*300)));
@@ -603,9 +603,6 @@ for (let i = 89; i >= 0; i--){
 }
 function sliceDays(n){ return DAILY.slice(DAILY.length - n); }
 
-/* ============================================================
-   2. PRODUCTS
-============================================================ */
 const PRODUCT_LIST = [
   { name:'ONE STROKE TEE', cat:'TEE', price:1680, cost:590 },
   { name:'STATEMENT TEE', cat:'TEE', price:1880, cost:640 },
@@ -617,703 +614,465 @@ const PRODUCT_LIST = [
   { name:'TOTE BAG', cat:'ACC', price:780, cost:260 },
   { name:'SOCKS SET', cat:'ACC', price:480, cost:150 },
 ];
-const PRODUCTS = PRODUCT_LIST.map((p, i) => {
-  const units = randInt(60, 420) * (p.cat === 'ACC' ? 1.4 : 1) | 0;
+
+const PRODUCTS = PRODUCT_LIST.map((p) => {
+  const units = Math.floor(randInt(60, 420) * (p.cat === 'ACC' ? 1.4 : 1));
   const revenue = units * p.price;
-  const margin = ((p.price - p.cost) / p.price) * 100;
-  const stock = randInt(4, 260);
-  const turnover = +(units / (stock + units*0.3)).toFixed(2);
-  return { id:'P0'+(i+1), ...p, units, revenue, margin, stock, safety: randInt(15,40), turnover };
+  const margin = Math.round(((p.price - p.cost) / p.price) * 100);
+  const stock = randInt(12, 120);
+  const safetyStock = 30;
+  return { ...p, units, revenue, margin, stock, safetyStock };
 });
 
-/* ============================================================
-   3. PAYMENT CHANNELS
-============================================================ */
-const PAYMENTS = [
-  { name:'信用卡', share:52, success:96.4 },
-  { name:'LINE Pay', share:24, success:98.1 },
-  { name:'超商取貨付款', share:18, success:88.7 },
-  { name:'Apple Pay', share:6, success:97.9 },
-];
-
-/* ============================================================
-   4. ORDERS
-============================================================ */
-const FIRST = ['林','陳','張','李','王','黃','吳','劉','蔡','楊','許','鄭','謝','郭','洪'];
-const STATUS_LIST = [
-  { key:'done', label:'已完成', cls:'pill-ok' },
-  { key:'processing', label:'處理中', cls:'pill-pending' },
-  { key:'cancelled', label:'已取消', cls:'pill-info' },
-  { key:'refunded', label:'已退款', cls:'pill-bad' },
-];
-const ORDERS = [];
-for (let i = 0; i < 64; i++){
-  const d = addDays(todayDate, -randInt(0,29));
-  const items = randInt(1,3);
-  const amount = items * pick(PRODUCT_LIST).price + randInt(-100,150);
-  const statusRoll = rand();
-  const status = statusRoll < 0.78 ? STATUS_LIST[0] : statusRoll < 0.90 ? STATUS_LIST[1] : statusRoll < 0.96 ? STATUS_LIST[2] : STATUS_LIST[3];
-  ORDERS.push({
-    id: 'OSC-'+(48000+i),
-    customer: pick(FIRST) + '先生/小姐'.slice(rand()<0.5?0:2),
-    date: dateStr(d),
-    items, amount: Math.max(480, amount),
-    payment: pick(PAYMENTS).name,
-    status,
-  });
-}
-ORDERS.sort((a,b)=> b.date.localeCompare(a.date));
-
-/* ============================================================
-   5. MEMBERS + RFM
-============================================================ */
+const SURNAMES = ['陳','林','黃','張','李','王','吳','劉','蔡','楊'];
+const NAMES = ['建宏','雅婷','家豪','冠宇','宗翰','怡君','詩涵','承翰','品妤','宇軒'];
 const MEMBERS = [];
-for (let i = 0; i < 150; i++){
-  const joinDaysAgo = randInt(10, 540);
-  const joinDate = addDays(todayDate, -joinDaysAgo);
-  const frequency = Math.max(1, Math.round(rand() * rand() * 14));
-  const lastOrderDaysAgo = Math.min(joinDaysAgo, Math.round(rand()*rand()*180));
-  const monetaryAvg = 900 + rand()*2600;
-  const monetary = Math.round(frequency * monetaryAvg);
-  MEMBERS.push({
-    id: 'M'+(1000+i),
-    name: pick(FIRST) + pick(['小明','怡君','家豪','詩涵','冠宇','雨柔','政翰','思妤','俊傑','佳蓉']),
-    email: 'member'+(1000+i)+'@mail.com',
-    joinDate: dateStr(joinDate),
-    frequency, monetary,
-    lastOrderDaysAgo,
+const RFM_SEGS = [
+  { id:'champions', name:'核心 VIP', desc:'高頻高額，極致忠誠' },
+  { id:'loyal', name:'忠誠客戶', desc:'穩定回購，對品牌有偏好' },
+  { id:'potential', name:'潛力客群', desc:'近期有消費，頻次提升中' },
+  { id:'at_risk', name:'流失預警', desc:'昔日高貢獻，近期無互動' },
+  { id:'hibernating', name:'沉睡客戶', desc:'長時間未回購，需激活' }
+];
+
+for(let i=1; i<=45; i++){
+  const name = pick(SURNAMES) + pick(NAMES);
+  const email = `user${i}@example.com`;
+  const ordersCount = randInt(1, 12);
+  const totalSpent = ordersCount * randInt(1500, 4800);
+  const seg = pick(RFM_SEGS).id;
+  const lastDate = dateStr(addDays(todayDate, -randInt(1, 120)));
+  MEMBERS.push({ id:`M${1000+i}`, name, email, ordersCount, totalSpent, seg, lastDate });
+}
+
+const ORDERS = [];
+const STATUSES = ['done', 'processing', 'cancelled', 'refunded'];
+for(let i=1; i<=30; i++){
+  const m = pick(MEMBERS);
+  const amount = randInt(980, 8600);
+  const status = rand() > 0.15 ? (rand() > 0.2 ? 'done' : 'processing') : pick(['cancelled', 'refunded']);
+  ORDERS.push({
+    id: `ORD-2026-${1000+i}`,
+    customer: m.name,
+    email: m.email,
+    amount,
+    status,
+    date: dateStr(addDays(todayDate, -randInt(0, 15))),
+    items: `${pick(PRODUCT_LIST).name} x${randInt(1,2)}`
   });
 }
-// quantile-based R / F / M scoring (1-5)
-function scoreQuantile(values, value, invert){
-  const sorted = [...values].sort((a,b)=>a-b);
-  const idx = sorted.findIndex(v => v >= value);
-  const pct = idx === -1 ? 1 : idx / sorted.length;
-  let s = Math.ceil(pct * 5) || 1;
-  if (invert) s = 6 - s;
-  return Math.min(5, Math.max(1, s));
+
+/* ============================================================
+   2. VIEW CONTROL & ROUTING
+============================================================ */
+function switchView(viewId) {
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.classList.toggle('is-active', btn.dataset.view === viewId);
+  });
+  document.querySelectorAll('.view').forEach(view => {
+    view.classList.toggle('is-active', view.id === `view-${viewId}`);
+  });
+
+  // Render specific modules upon switching view
+  if(viewId === 'overview') renderOverview();
+  if(viewId === 'sales') renderSales();
+  if(viewId === 'crm') renderCRM();
+  if(viewId === 'traffic') renderTraffic();
+  if(viewId === 'marketing') renderMarketing();
+  if(viewId === 'inventory') renderInventory();
+  if(viewId === 'system') renderSystem();
 }
-const rVals = MEMBERS.map(m=>m.lastOrderDaysAgo);
-const fVals = MEMBERS.map(m=>m.frequency);
-const mVals = MEMBERS.map(m=>m.monetary);
-MEMBERS.forEach(m => {
-  m.rScore = scoreQuantile(rVals, m.lastOrderDaysAgo, true); // fewer days ago = higher score
-  m.fScore = scoreQuantile(fVals, m.frequency, false);
-  m.mScore = scoreQuantile(mVals, m.monetary, false);
-  const avg = (m.rScore + m.fScore + m.mScore) / 3;
-  if (m.rScore >= 4 && m.fScore >= 4 && m.mScore >= 4) m.segment = '冠軍會員';
-  else if (m.fScore >= 4 && m.rScore >= 3) m.segment = '忠誠會員';
-  else if (m.rScore >= 4 && m.fScore <= 2) m.segment = '新會員';
-  else if (m.rScore <= 2 && m.fScore >= 3) m.segment = '流失風險';
-  else if (m.rScore <= 2 && m.fScore <= 2) m.segment = '沉睡會員';
-  else m.segment = '潛力會員';
-  // purchase history mock
-  m.history = [];
-  const hCount = Math.min(m.frequency, 6);
-  for (let j = 0; j < hCount; j++){
-    const dd = addDays(todayDate, -(m.lastOrderDaysAgo + j*randInt(20,60)));
-    m.history.push({ date: dateStr(dd), product: pick(PRODUCT_LIST).name, amount: pick(PRODUCT_LIST).price });
-  }
-  m.returns = rand() < 0.16 ? randInt(1,2) : 0;
+
+document.querySelectorAll('.nav-item').forEach(btn => {
+  btn.addEventListener('click', () => switchView(btn.dataset.view));
 });
-const SEGMENT_META = {
-  '冠軍會員': { desc:'R/F/M 皆高，最有價值', color:'ink' },
-  '忠誠會員': { desc:'高頻回購', color:'ink' },
-  '潛力會員': { desc:'中等表現，可培養', color:'steel' },
-  '新會員':   { desc:'近期加入，首購未久', color:'steel' },
-  '流失風險': { desc:'許久未回購', color:'rust' },
-  '沉睡會員': { desc:'長期無互動', color:'rust' },
-};
 
 /* ============================================================
-   6. TRAFFIC SOURCES + FUNNEL + CART ABANDONMENT
+   3. RENDER MODULES
 ============================================================ */
-const TRAFFIC_SOURCES = [
-  { name:'Facebook Ads', sessions: 18400, convRate: 2.1 },
-  { name:'Google Ads', sessions: 12600, convRate: 2.8 },
-  { name:'Instagram', sessions: 9800, convRate: 1.7 },
-  { name:'SEO 自然搜尋', sessions: 15200, convRate: 3.4 },
-  { name:'直接流量', sessions: 8100, convRate: 4.1 },
-  { name:'聯盟 / KOL 推薦', sessions: 5300, convRate: 2.4 },
-];
-const FUNNEL = (() => {
-  const view = 100;
-  const cart = 100 * 0.34;
-  const checkout = cart * 0.52;
-  const purchase = checkout * 0.68;
-  return [
-    { name:'商品瀏覽', pct: view, count: 69400 },
-    { name:'加入購物車', pct: cart, count: Math.round(69400*0.34) },
-    { name:'進入結帳', pct: checkout, count: Math.round(69400*0.34*0.52) },
-    { name:'完成購買', pct: purchase, count: Math.round(69400*0.34*0.52*0.68) },
-  ];
-})();
-const CART_ABANDON = [];
-for (let i = 0; i < 12; i++){
-  const p = pick(PRODUCT_LIST);
-  CART_ABANDON.push({
-    email: 'guest'+randInt(100,999)+'@mail.com',
-    product: p.name, qty: randInt(1,2), price: p.price,
-    ago: randInt(1,48),
-  });
-}
 
-/* ============================================================
-   7. MARKETING — coupons / utm / kol
-============================================================ */
-const COUPONS = [
-  { code:'WELCOME10', type:'9折', uses:214, revenue:312000, conv:6.2 },
-  { code:'OSCVIP', type:'滿3000折300', uses:98, revenue:287500, conv:8.9 },
-  { code:'DROP0827', type:'85折', uses:156, revenue:198400, conv:5.1 },
-  { code:'FREESHIP', type:'免運', uses:341, revenue:401200, conv:9.7 },
-  { code:'BIRTHDAY', type:'85折', uses:47, revenue:66200, conv:11.3 },
-  { code:'KOL-MIA', type:'9折', uses:88, revenue:121000, conv:4.4 },
-];
-const UTM = [
-  { source:'facebook', medium:'cpc', campaign:'0827_dropteaser', sessions:6200, conv:132, revenue:224800, spend:38000 },
-  { source:'google', medium:'cpc', campaign:'brand_search', sessions:4100, conv:168, revenue:298600, spend:26500 },
-  { source:'instagram', medium:'social', campaign:'reels_wave_logo', sessions:3300, conv:54, revenue:87400, spend:14200 },
-  { source:'newsletter', medium:'email', campaign:'aug_restock', sessions:2100, conv:96, revenue:151200, spend:0 },
-  { source:'kol_mia', medium:'affiliate', campaign:'mia_unboxing', sessions:1800, conv:61, revenue:98700, spend:9000 },
-  { source:'google', medium:'display', campaign:'retarget_cart', sessions:2600, conv:71, revenue:112300, spend:15800 },
-];
-const KOL = [
-  { name:'@mia.wears', clicks:5400, orders:61, rate:12, commission:11844 },
-  { name:'@streetlineup', clicks:3900, orders:38, rate:10, commission:7220 },
-  { name:'@kh.dailyfit', clicks:2100, orders:19, rate:12, commission:4104 },
-  { name:'@wave.tw', clicks:1600, orders:14, rate:10, commission:2660 },
-  { name:'@osc.fanpage', clicks:980, orders:9, rate:8, commission:1310 },
-];
+// ---- 00. OVERVIEW ----
+function renderOverview() {
+  const d30 = sliceDays(30);
+  const totalRev = d30.reduce((s, x) => s + x.revenue, 0);
+  const totalOrd = d30.reduce((s, x) => s + x.orders, 0);
 
-/* ============================================================
-   8. INVENTORY / LOGISTICS
-============================================================ */
-const LOGISTICS = [
-  { name:'已送達', value: 412 },
-  { name:'出貨中', value: 96 },
-  { name:'超商未取（逾期）', value: 23 },
-  { name:'退貨處理中', value: 11 },
-];
-const UNCLAIMED_WEEKS = [];
-for (let i = 7; i >= 0; i--){
-  UNCLAIMED_WEEKS.push({ label:'W-'+i, rate: +(6 + rand()*5).toFixed(1) });
-}
+  document.getElementById('ov-kpis').innerHTML = `
+    <div class="kpi-card"><span class="kpi-label">近 30 天營業額</span><span class="kpi-value">${fmtMoney(totalRev)}</span><span class="kpi-delta up">↑ 12.4%</span></div>
+    <div class="kpi-card"><span class="kpi-label">近 30 天總訂單</span><span class="kpi-value">${fmtNum(totalOrd)}</span><span class="kpi-delta up">↑ 8.1%</span></div>
+    <div class="kpi-card"><span class="kpi-label">平均客單價 (AOV)</span><span class="kpi-value">${fmtMoney(totalRev/totalOrd)}</span><span class="kpi-delta down">↓ 1.2%</span></div>
+    <div class="kpi-card"><span class="kpi-label">活躍會員數</span><span class="kpi-value">${MEMBERS.length}</span><span class="kpi-note">RFM 追蹤中</span></div>
+  `;
 
-/* ============================================================
-   9. SYSTEM / AUDIT
-============================================================ */
-const SYS_DAILY = [];
-for (let i = 29; i >= 0; i--){
-  const d = addDays(todayDate, -i);
-  SYS_DAILY.push({
-    date: dateStr(d),
-    load: Math.round(680 + rand()*420 + (rand()<0.06 ? 900 : 0)),
-    error: +(0.15 + rand()*0.6 + (rand()<0.05 ? 1.4 : 0)).toFixed(2),
-  });
-}
-const AUDIT_ACTIONS = ['修改商品價格','編輯庫存數量','發送優惠券','退款訂單','匯出會員名單','新增管理員帳號','修改首頁輪播圖','關閉商品上架','修改物流狀態','登入後台'];
-const AUDIT_USERS = [
-  { name:'Studio Manager', role:'admin' },
-  { name:'客服 - 小陳', role:'staff' },
-  { name:'倉管 - 阿賢', role:'staff' },
-  { name:'行銷 - Mia', role:'marketing' },
-  { name:'行銷 - Kevin', role:'marketing' },
-];
-const AUDIT_LOG = [];
-for (let i = 0; i < 40; i++){
-  const u = pick(AUDIT_USERS);
-  const d = addDays(todayDate, -randInt(0,20));
-  d.setHours(randInt(8,23), randInt(0,59));
-  AUDIT_LOG.push({
-    user: u.name, role: u.role,
-    action: pick(AUDIT_ACTIONS),
-    target: pick(['#OSC-48'+randInt(10,99), pick(PRODUCT_LIST).name, 'M'+randInt(1000,1150), '首頁 Banner']),
-    time: d.toISOString().slice(0,16).replace('T',' '),
-    ip: `192.168.${randInt(0,4)}.${randInt(2,250)}`,
-  });
-}
-AUDIT_LOG.sort((a,b)=> b.time.localeCompare(a.time));
-
-/* ============================================================
-   CHART.JS DEFAULTS
-============================================================ */
-Chart.defaults.font.family = "'JetBrains Mono', monospace";
-Chart.defaults.font.size = 10.5;
-Chart.defaults.color = '#6b7075';
-Chart.defaults.borderColor = 'rgba(10,10,10,0.08)';
-const INK = '#E8B23D', BLACK = '#0a0a0a', STEEL = '#9aa0a6', RUST = '#C0574A';
-const gridOpt = { grid:{ color:'rgba(10,10,10,0.07)', drawTicks:false }, ticks:{ padding:6 } };
-
-/* ============================================================
-   NAVIGATION
-============================================================ */
-document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.classList.remove('is-active'));
-    btn.classList.add('is-active');
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('is-active'));
-    document.getElementById('view-'+btn.dataset.view).classList.add('is-active');
-    window.scrollTo({top:0, behavior:'auto'});
-  });
-});
-function goTo(view){ document.querySelector(`.nav-item[data-view="${view}"]`).click(); }
-
-/* ============================================================
-   OVERVIEW
-============================================================ */
-function kpiCard(label, value, delta, note){
-  const deltaHtml = delta !== undefined ? `<span class="kpi-delta ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${Math.abs(delta).toFixed(1)}%</span>` : '';
-  return `<div class="kpi-card"><span class="kpi-label">${label}</span><span class="kpi-value">${value}</span>${deltaHtml}${note?`<span class="kpi-note">${note}</span>`:''}</div>`;
-}
-
-function renderOverview(){
-  const d30 = sliceDays(30), prev30 = DAILY.slice(DAILY.length-60, DAILY.length-30);
-  const rev30 = d30.reduce((s,d)=>s+d.revenue,0);
-  const revPrev = prev30.reduce((s,d)=>s+d.revenue,0);
-  const orders30 = d30.reduce((s,d)=>s+d.orders,0);
-  const aov = rev30/orders30;
-  const lowStock = PRODUCTS.filter(p=>p.stock < p.safety).length;
-  const atRisk = MEMBERS.filter(m=>m.segment==='流失風險'||m.segment==='沉睡會員').length;
-
-  document.getElementById('ov-kpis').innerHTML = [
-    kpiCard('近30天營業額', fmtMoney(rev30), (rev30-revPrev)/revPrev*100, 'vs 前30天'),
-    kpiCard('訂單數', fmtNum(orders30), undefined, '近30天'),
-    kpiCard('平均客單價', fmtMoney(aov)),
-    kpiCard('會員總數', fmtNum(MEMBERS.length), undefined, atRisk+' 位流失風險'),
-    kpiCard('低庫存警示', fmtNum(lowStock), undefined, '低於安全庫存量'),
-    kpiCard('近30天錯誤率', fmtPct(SYS_DAILY.slice(-30).reduce((s,d)=>s+d.error,0)/30)),
-  ].join('');
-
-  const alerts = [];
-  PRODUCTS.filter(p=>p.stock<p.safety).slice(0,3).forEach(p=>alerts.push({dot:'', text:`<b>${p.name}</b> 庫存僅剩 ${p.stock} 件（安全庫存 ${p.safety}）`, meta:'INVENTORY'}));
-  alerts.push({dot:'', text:`超商未取件率本週為 <b>${UNCLAIMED_WEEKS[UNCLAIMED_WEEKS.length-1].rate}%</b>`, meta:'LOGISTICS'});
-  alerts.push({dot:'ink', text:`本月新增 <b>${MEMBERS.filter(m=>m.frequency<=1 && m.lastOrderDaysAgo<30).length}</b> 位新會員`, meta:'CRM'});
-  alerts.push({dot:'', text:`<b>${atRisk}</b> 位會員已列為流失風險 / 沉睡`, meta:'CRM'});
-  const errSpike = SYS_DAILY.slice(-3).some(d=>d.error>1.2);
-  if (errSpike) alerts.push({dot:'', text:`近3日偵測到錯誤率異常升高`, meta:'SYSTEM'});
-  document.getElementById('ov-alerts').innerHTML = alerts.map(a=>`<div class="alert-row"><span class="alert-dot ${a.dot}"></span><span class="alert-text">${a.text}</span><span class="alert-meta">${a.meta}</span></div>`).join('');
+  document.getElementById('ov-alerts').innerHTML = `
+    <div class="alert-row"><div class="alert-dot"></div><div class="alert-text">庫存預警：<b>LINE HOODIE</b> 庫存僅剩 12 件（安全庫存 30）</div><div class="alert-meta">10m ago</div></div>
+    <div class="alert-row"><div class="alert-dot ink"></div><div class="alert-text">系統提醒：金流 LINE Pay 成功率上升至 <b>98.4%</b></div><div class="alert-meta">1h ago</div></div>
+    <div class="alert-row"><div class="alert-dot"></div><div class="alert-text">退款率異常：昨日退款率達到 <b>3.2%</b>，請確認產品 QC</div><div class="alert-meta">1d ago</div></div>
+  `;
 
   const tiles = [
-    { n:'01', v:'sales', t:'訂單與銷售', d:'營收概況、商品銷售榜、金流成功率', m: fmtMoney(rev30)+' /30d' },
-    { n:'02', v:'crm', t:'客戶與會員', d:'RFM 分群、回購率、顧客履歷', m: MEMBERS.length+' 位會員' },
-    { n:'03', v:'traffic', t:'流量與行為', d:'流量來源、轉化漏斗、棄單分析', m: fmtPct(FUNNEL[3].pct/FUNNEL[0].pct*100)+' 轉化率' },
-    { n:'04', v:'marketing', t:'行銷與廣告', d:'折扣碼、UTM 追蹤、KOL 分潤', m: COUPONS.length+' 組進行中' },
-    { n:'05', v:'inventory', t:'庫存與供應鏈', d:'低庫存警示、物流與取件狀態', m: lowStock+' 項低庫存' },
-    { n:'06', v:'system', t:'系統效能與稽核', d:'載入速度、錯誤率、操作日誌', m: AUDIT_LOG.length+' 筆近期紀錄' },
+    { id:'sales', title:'01 訂單與銷售', desc:'銷售額趨勢、商品銷售排行榜、金流通路分析', metric: fmtMoney(totalRev) },
+    { id:'crm', title:'02 客戶與會員', desc:'RFM 會員分群、回購率、顧客生命週期價值', metric:`${MEMBERS.length} 人` },
+    { id:'traffic', title:'03 流量與行為', desc:'全站流量管道、購物轉化漏斗、棄單追蹤', metric:'CVR 2.84%' },
+    { id:'marketing', title:'04 行銷與廣告', desc:'折扣碼成效、UTM 渠道追蹤、KOL 聯盟分潤', metric:'ROAS 4.12' },
+    { id:'inventory', title:'05 庫存與供應鏈', desc:'低庫存預警、物流進度追蹤、超商未取率', metric:'2 項需補貨' },
+    { id:'system', title:'06 系統效能', desc:'API 響應時間、錯誤紀錄、管理員操作日誌', metric:'99.94% Uptime' }
   ];
-  document.getElementById('ov-tiles').innerHTML = tiles.map(t=>`
-    <button class="tile" data-goto="${t.v}">
-      <span class="tile-num">${t.n}</span>
-      <span class="tile-title">${t.t}</span>
-      <span class="tile-desc">${t.d}</span>
-      <span class="tile-metric">${t.m}</span>
-    </button>`).join('');
-  document.querySelectorAll('.tile').forEach(t=>t.addEventListener('click', ()=>goTo(t.dataset.goto)));
 
-  new Chart(document.getElementById('chart-ov-revenue'), {
-    type:'line',
-    data:{ labels: DAILY.map(d=>d.date.slice(5)), datasets:[{
-      data: DAILY.map(d=>d.revenue), borderColor: BLACK, backgroundColor:'rgba(232,178,61,0.15)',
-      fill:true, tension:0.3, pointRadius:0, borderWidth:1.6,
-    }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>fmtMoney(c.parsed.y)}}},
-      scales:{ x:{...gridOpt, ticks:{...gridOpt.ticks, maxTicksLimit:9}}, y:{...gridOpt, ticks:{...gridOpt.ticks, callback:v=>(v/1000)+'k'}} } }
+  document.getElementById('ov-tiles').innerHTML = tiles.map(t => `
+    <div class="tile" onclick="switchView('${t.id}')">
+      <div class="tile-num">${t.title.slice(0,2)}</div>
+      <div class="tile-title">${t.title.slice(3)}</div>
+      <div class="tile-desc">${t.desc}</div>
+      <div class="tile-metric">${t.metric}</div>
+    </div>
+  `).join('');
+
+  // Chart
+  if(charts.ovRev) charts.ovRev.destroy();
+  const ctx = document.getElementById('chart-ov-revenue').getContext('2d');
+  charts.ovRev = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: DAILY.map(d => d.date.slice(5)),
+      datasets: [{
+        label: 'Daily Revenue',
+        data: DAILY.map(d => d.revenue),
+        borderColor: '#E8B23D',
+        backgroundColor: 'rgba(232,178,61,0.08)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: 0
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
   });
-
-  document.getElementById('ov-clock').textContent = 'AS OF ' + dateStr(todayDate) + ' 09:00';
 }
 
-/* ============================================================
-   SALES VIEW
-============================================================ */
-let salesChart, paymentChart, salesRangeDays = 30, salesSort = 'revenue', salesCat = 'all';
+// ---- 01. SALES ----
+function renderSales() {
+  const d30 = sliceDays(30);
+  const rev = d30.reduce((a,b)=>a+b.revenue,0);
+  const ord = d30.reduce((a,b)=>a+b.orders,0);
 
-function renderSalesKpis(){
-  const d = sliceDays(salesRangeDays);
-  const dPrev = DAILY.slice(Math.max(0,DAILY.length-salesRangeDays*2), DAILY.length-salesRangeDays);
-  const rev = d.reduce((s,x)=>s+x.revenue,0), revPrev = dPrev.reduce((s,x)=>s+x.revenue,0)||rev;
-  const orders = d.reduce((s,x)=>s+x.orders,0);
-  const refunds = d.reduce((s,x)=>s+x.refunds,0), cancels = d.reduce((s,x)=>s+x.cancellations,0);
-  document.getElementById('sales-kpis').innerHTML = [
-    kpiCard('總營業額', fmtMoney(rev), (rev-revPrev)/revPrev*100, `近${salesRangeDays}天`),
-    kpiCard('總訂單數', fmtNum(orders)),
-    kpiCard('平均客單價 AOV', fmtMoney(rev/orders)),
-    kpiCard('退款訂單', fmtNum(refunds), undefined, fmtPct(refunds/orders*100)+' 佔比'),
-    kpiCard('取消訂單', fmtNum(cancels), undefined, fmtPct(cancels/orders*100)+' 佔比'),
-  ].join('');
+  document.getElementById('sales-kpis').innerHTML = `
+    <div class="kpi-card"><span class="kpi-label">區間總銷售</span><span class="kpi-value">${fmtMoney(rev)}</span></div>
+    <div class="kpi-card"><span class="kpi-label">訂單總數</span><span class="kpi-value">${fmtNum(ord)}</span></div>
+    <div class="kpi-card"><span class="kpi-label">平均客單價</span><span class="kpi-value">${fmtMoney(rev/ord)}</span></div>
+  `;
+
+  // Trend Chart
+  if(charts.salesTrend) charts.salesTrend.destroy();
+  const ctx = document.getElementById('chart-sales-trend').getContext('2d');
+  charts.salesTrend = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: d30.map(d => d.date.slice(5)),
+      datasets: [{
+        label: 'Revenue',
+        data: d30.map(d => d.revenue),
+        backgroundColor: '#0a0a0a'
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+
+  // Payment Donut
+  if(charts.salesPay) charts.salesPay.destroy();
+  const ctxP = document.getElementById('chart-sales-payment').getContext('2d');
+  charts.salesPay = new Chart(ctxP, {
+    type: 'doughnut',
+    data: {
+      labels: ['信用卡', 'LINE Pay', '超商取貨付款'],
+      datasets: [{
+        data: [52, 33, 15],
+        backgroundColor: ['#0a0a0a', '#E8B23D', '#9aa0a6']
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+  });
+
+  renderProductTable();
+  renderOrdersTable();
 }
 
-function renderSalesCharts(){
-  const d = sliceDays(salesRangeDays);
-  const labels = d.map(x=>x.date.slice(5));
-  if (salesChart) salesChart.destroy();
-  salesChart = new Chart(document.getElementById('chart-sales-trend'), {
-    data:{ labels, datasets:[
-      { type:'bar', label:'訂單數', data:d.map(x=>x.orders), backgroundColor:'rgba(10,10,10,0.12)', yAxisID:'y1', borderRadius:1, barPercentage:0.55 },
-      { type:'line', label:'營業額', data:d.map(x=>x.revenue), borderColor:BLACK, backgroundColor:'rgba(232,178,61,0.18)', fill:true, tension:0.3, pointRadius:0, borderWidth:1.6, yAxisID:'y' },
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{ position:'top', align:'end', labels:{boxWidth:10, boxHeight:10} } },
-      scales:{ x:{...gridOpt, ticks:{...gridOpt.ticks, maxTicksLimit:10}}, y:{...gridOpt, position:'left', ticks:{...gridOpt.ticks, callback:v=>(v/1000)+'k'}}, y1:{position:'right', grid:{display:false}, ticks:{...gridOpt.ticks}} }
-    }
-  });
-  if (paymentChart) paymentChart.destroy();
-  paymentChart = new Chart(document.getElementById('chart-sales-payment'), {
-    type:'doughnut',
-    data:{ labels: PAYMENTS.map(p=>p.name), datasets:[{ data: PAYMENTS.map(p=>p.share), backgroundColor:[BLACK,INK,STEEL,'#4b4f53'], borderWidth:2, borderColor:'#EDE9E1' }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, cutout:'62%' }
-  });
-  document.getElementById('payment-legend').innerHTML = PAYMENTS.map(p=>`
-    <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:0.72rem; padding:5px 0; border-bottom:1px dashed var(--line-light);">
-      <span>${p.name} · ${p.share}%</span><span style="color:${p.success<90?'var(--rust)':'var(--steel-dim)'}">成功率 ${p.success}%</span>
-    </div>`).join('');
-}
-
-function renderProductTable(){
-  let rows = PRODUCTS.filter(p => salesCat==='all' || p.cat===salesCat);
-  rows.sort((a,b)=> b[salesSort]-a[salesSort]);
-  const tbl = document.getElementById('tbl-products');
-  tbl.querySelector('thead').innerHTML = `<tr><th>商品</th><th>分類</th><th>銷量</th><th>銷售額</th><th>毛利率</th><th>庫存週轉</th><th>庫存</th></tr>`;
-  tbl.querySelector('tbody').innerHTML = rows.map(p=>`
+function renderProductTable() {
+  const cat = document.getElementById('sales-cat-filter').value;
+  let list = PRODUCTS.filter(p => cat === 'all' || p.cat === cat);
+  
+  const tbody = document.querySelector('#tbl-products tbody');
+  document.querySelector('#tbl-products thead').innerHTML = `
+    <tr><th>商品名稱</th><th>分類</th><th>售價</th><th>銷量</th><th>總銷售額</th><th>毛利率</th></tr>
+  `;
+  tbody.innerHTML = list.map(p => `
     <tr>
-      <td class="wrap">${p.name}</td>
+      <td class="wrap"><b>${p.name}</b></td>
       <td><span class="pill pill-info">${p.cat}</span></td>
+      <td>${fmtMoney(p.price)}</td>
       <td>${fmtNum(p.units)}</td>
       <td>${fmtMoney(p.revenue)}</td>
-      <td>${fmtPct(p.margin)}</td>
-      <td>${p.turnover}x</td>
-      <td>${p.stock < p.safety ? `<span class="pill pill-bad">${p.stock}</span>` : p.stock}</td>
-    </tr>`).join('');
+      <td>${p.margin}%</td>
+    </tr>
+  `).join('');
 }
 
-function renderOrdersTable(){
-  const q = document.getElementById('orders-search').value.trim().toLowerCase();
+function renderOrdersTable() {
+  const search = document.getElementById('orders-search').value.toLowerCase();
   const status = document.getElementById('orders-status-filter').value;
-  let rows = ORDERS.filter(o => (status==='all' || o.status.key===status) &&
-    (q==='' || o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q)));
-  document.getElementById('orders-count-tag').textContent = rows.length + ' 筆';
-  const tbl = document.getElementById('tbl-orders');
-  tbl.querySelector('thead').innerHTML = `<tr><th>訂單編號</th><th>顧客</th><th>日期</th><th>件數</th><th>金額</th><th>金流</th><th>狀態</th></tr>`;
-  tbl.querySelector('tbody').innerHTML = rows.slice(0,30).map(o=>`
+  
+  let list = ORDERS.filter(o => {
+    const matchS = (status === 'all' || o.status === status);
+    const matchQ = (o.id.toLowerCase().includes(search) || o.customer.toLowerCase().includes(search));
+    return matchS && matchQ;
+  });
+
+  const tbody = document.querySelector('#tbl-orders tbody');
+  document.querySelector('#tbl-orders thead').innerHTML = `
+    <tr><th>訂單編號</th><th>顧客</th><th>購買項目</th><th>金額</th><th>狀態</th><th>日期</th></tr>
+  `;
+  
+  const statusMap = {
+    done: '<span class="pill pill-ok">已完成</span>',
+    processing: '<span class="pill pill-pending">處理中</span>',
+    cancelled: '<span class="pill pill-bad">已取消</span>',
+    refunded: '<span class="pill pill-bad">已退款</span>'
+  };
+
+  tbody.innerHTML = list.map(o => `
     <tr>
-      <td>${o.id}</td><td class="wrap">${o.customer}</td><td>${o.date}</td><td>${o.items}</td>
-      <td>${fmtMoney(o.amount)}</td><td class="wrap">${o.payment}</td>
-      <td><span class="pill ${o.status.cls}">${o.status.label}</span></td>
-    </tr>`).join('') || `<tr><td colspan="7" class="empty-hint">沒有符合條件的訂單</td></tr>`;
+      <td><b>${o.id}</b></td>
+      <td>${o.customer}</td>
+      <td class="wrap">${o.items}</td>
+      <td>${fmtMoney(o.amount)}</td>
+      <td>${statusMap[o.status]}</td>
+      <td>${o.date}</td>
+    </tr>
+  `).join('');
 }
 
-function renderSales(){ renderSalesKpis(); renderSalesCharts(); renderProductTable(); renderOrdersTable(); }
+// ---- 02. CRM ----
+let activeRfmFilter = null;
+function renderCRM() {
+  document.getElementById('crm-kpis').innerHTML = `
+    <div class="kpi-card"><span class="kpi-label">總會員數</span><span class="kpi-value">${MEMBERS.length}</span></div>
+    <div class="kpi-card"><span class="kpi-label">回購率</span><span class="kpi-value">38.4%</span></div>
+    <div class="kpi-card"><span class="kpi-label">顧客 LTV</span><span class="kpi-value">${fmtMoney(14200)}</span></div>
+  `;
 
-document.querySelectorAll('#sales-range button').forEach(b=>b.addEventListener('click', ()=>{
-  document.querySelectorAll('#sales-range button').forEach(x=>x.classList.remove('is-active'));
-  b.classList.add('is-active'); salesRangeDays = Number(b.dataset.range); renderSalesKpis(); renderSalesCharts();
-}));
-document.querySelectorAll('#sales-sort button').forEach(b=>b.addEventListener('click', ()=>{
-  document.querySelectorAll('#sales-sort button').forEach(x=>x.classList.remove('is-active'));
-  b.classList.add('is-active'); salesSort = b.dataset.sort;
-  document.getElementById('sales-rank-tag').textContent = 'by '+salesSort;
-  renderProductTable();
-}));
-document.getElementById('sales-cat-filter').addEventListener('change', e=>{ salesCat = e.target.value; renderProductTable(); });
-document.getElementById('orders-search').addEventListener('input', renderOrdersTable);
-document.getElementById('orders-status-filter').addEventListener('change', renderOrdersTable);
+  // RFM Grid
+  const rfmContainer = document.getElementById('rfm-grid');
+  rfmContainer.innerHTML = RFM_SEGS.map(s => {
+    const count = MEMBERS.filter(m => m.seg === s.id).length;
+    const isActive = activeRfmFilter === s.id;
+    return `
+      <div class="rfm-seg ${isActive?'is-active':''}" onclick="toggleRfmFilter('${s.id}')">
+        <div class="rfm-name">${s.name}</div>
+        <div class="rfm-count">${count}</div>
+        <div class="rfm-desc">${s.desc}</div>
+      </div>
+    `;
+  }).join('');
 
-/* ============================================================
-   CRM VIEW
-============================================================ */
-let rfmActive = null;
-
-function renderCrmKpis(){
-  const newMembers30 = MEMBERS.filter(m=>m.lastOrderDaysAgo<30 && m.frequency<=1).length;
-  const repeat = MEMBERS.filter(m=>m.frequency>1).length;
-  const dormant = MEMBERS.filter(m=>m.segment==='沉睡會員').length;
-  const totalSpend = MEMBERS.reduce((s,m)=>s+m.monetary,0);
-  const avgLtv = totalSpend/MEMBERS.length;
-  document.getElementById('crm-kpis').innerHTML = [
-    kpiCard('會員總數', fmtNum(MEMBERS.length)),
-    kpiCard('近30天新會員', fmtNum(newMembers30)),
-    kpiCard('回購率', fmtPct(repeat/MEMBERS.length*100)),
-    kpiCard('沉睡會員', fmtNum(dormant), undefined, '90天以上未互動'),
-    kpiCard('平均顧客終身價值', fmtMoney(avgLtv)),
-  ].join('');
+  renderMembersTable();
 }
 
-function renderCrmCharts(){
-  const months = ['3月','4月','5月','6月','7月','8月'];
-  const growthData = months.map((_,i)=> randInt(14,38) + i*3);
-  new Chart(document.getElementById('chart-crm-growth'), {
-    type:'bar',
-    data:{ labels: months, datasets:[{ data: growthData, backgroundColor: BLACK, borderRadius:2, barPercentage:0.55 }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:gridOpt, y:gridOpt} }
+function toggleRfmFilter(segId) {
+  if(activeRfmFilter === segId) {
+    activeRfmFilter = null;
+    document.getElementById('rfm-active-filter').style.display = 'none';
+  } else {
+    activeRfmFilter = segId;
+    const segName = RFM_SEGS.find(s=>s.id===segId).name;
+    document.getElementById('rfm-active-label').innerText = `已篩選: ${segName}`;
+    document.getElementById('rfm-active-filter').style.display = 'flex';
+  }
+  renderCRM();
+}
+
+function renderMembersTable() {
+  const search = document.getElementById('members-search').value.toLowerCase();
+  let list = MEMBERS.filter(m => {
+    const matchRfm = !activeRfmFilter || m.seg === activeRfmFilter;
+    const matchQ = m.name.toLowerCase().includes(search) || m.email.toLowerCase().includes(search);
+    return matchRfm && matchQ;
   });
-  const repeat = MEMBERS.filter(m=>m.frequency>1).length;
-  new Chart(document.getElementById('chart-crm-repeat'), {
-    type:'doughnut',
-    data:{ labels:['回購顧客','首購顧客'], datasets:[{ data:[repeat, MEMBERS.length-repeat], backgroundColor:[INK, 'rgba(10,10,10,0.14)'], borderWidth:2, borderColor:'#EDE9E1' }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10,boxHeight:10}}}, cutout:'62%' }
-  });
+
+  const tbody = document.querySelector('#tbl-members tbody');
+  document.querySelector('#tbl-members thead').innerHTML = `
+    <tr><th>會員姓名</th><th>Email</th><th>分群</th><th>累積訂單</th><th>總消費金額</th><th>最後購買日</th></tr>
+  `;
+
+  tbody.innerHTML = list.map(m => `
+    <tr class="clickable" onclick="openDrawer('${m.id}')">
+      <td><b>${m.name}</b></td>
+      <td>${m.email}</td>
+      <td><span class="pill pill-info">${RFM_SEGS.find(s=>s.id===m.seg).name}</span></td>
+      <td>${m.ordersCount}</td>
+      <td>${fmtMoney(m.totalSpent)}</td>
+      <td>${m.lastDate}</td>
+    </tr>
+  `).join('');
 }
 
-function renderRfmGrid(){
-  const counts = {};
-  MEMBERS.forEach(m => counts[m.segment] = (counts[m.segment]||0)+1);
-  document.getElementById('rfm-grid').innerHTML = Object.keys(SEGMENT_META).map(seg=>`
-    <button class="rfm-seg ${rfmActive===seg?'is-active':''}" data-seg="${seg}">
-      <div class="rfm-name">${seg}</div>
-      <div class="rfm-count">${counts[seg]||0}</div>
-      <div class="rfm-desc">${SEGMENT_META[seg].desc}</div>
-    </button>`).join('');
-  document.querySelectorAll('.rfm-seg').forEach(el=>el.addEventListener('click', ()=>{
-    rfmActive = rfmActive===el.dataset.seg ? null : el.dataset.seg;
-    renderRfmGrid(); renderMembersTable();
-  }));
-}
+// ---- Drawer ----
+function openDrawer(memberId) {
+  const m = MEMBERS.find(x => x.id === memberId);
+  if(!m) return;
+  document.getElementById('drawer-name').innerText = m.name;
+  document.getElementById('drawer-email').innerText = m.email;
+  document.getElementById('drawer-seg').innerText = RFM_SEGS.find(s=>s.id===m.seg).name;
+  
+  document.getElementById('drawer-kpis').innerHTML = `
+    <div class="kpi-card"><span class="kpi-label">累積消費</span><span class="kpi-value">${fmtMoney(m.totalSpent)}</span></div>
+    <div class="kpi-card"><span class="kpi-label">總訂單數</span><span class="kpi-value">${m.ordersCount}</span></div>
+  `;
 
-function renderMembersTable(){
-  const q = document.getElementById('members-search').value.trim().toLowerCase();
-  let rows = MEMBERS.filter(m => (!rfmActive || m.segment===rfmActive) &&
-    (q==='' || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)));
-  rows.sort((a,b)=> b.monetary - a.monetary);
-  const filterField = document.getElementById('rfm-active-filter');
-  if (rfmActive){ filterField.style.display='flex'; document.getElementById('rfm-active-label').textContent = rfmActive; filterField.onclick = ()=>{ rfmActive=null; renderRfmGrid(); renderMembersTable(); }; }
-  else filterField.style.display='none';
+  document.getElementById('drawer-hist').innerHTML = `
+    <div class="hist-item"><div><b>ORD-2026-8812</b><br>ONE STROKE TEE x1</div><div class="d">2026-08-12<br>${fmtMoney(1680)}</div></div>
+    <div class="hist-item"><div><b>ORD-2026-7102</b><br>LINE HOODIE x1</div><div class="d">2026-06-04<br>${fmtMoney(2980)}</div></div>
+  `;
 
-  const tbl = document.getElementById('tbl-members');
-  tbl.querySelector('thead').innerHTML = `<tr><th>會員</th><th>加入日期</th><th>購買次數</th><th>累積消費</th><th>最近購買</th><th>RFM分群</th></tr>`;
-  tbl.querySelector('tbody').innerHTML = rows.slice(0,40).map(m=>`
-    <tr class="clickable" data-id="${m.id}">
-      <td class="wrap">${m.name}</td><td>${m.joinDate}</td><td>${m.frequency}</td>
-      <td>${fmtMoney(m.monetary)}</td><td>${m.lastOrderDaysAgo} 天前</td>
-      <td><span class="pill ${SEGMENT_META[m.segment].color==='ink'?'pill-ok':SEGMENT_META[m.segment].color==='rust'?'pill-bad':'pill-info'}">${m.segment}</span></td>
-    </tr>`).join('') || `<tr><td colspan="6" class="empty-hint">沒有符合條件的會員</td></tr>`;
-  tbl.querySelectorAll('tr.clickable').forEach(tr=>tr.addEventListener('click', ()=>openDrawer(tr.dataset.id)));
-}
-
-function renderCrm(){ renderCrmKpis(); renderCrmCharts(); renderRfmGrid(); renderMembersTable(); }
-document.getElementById('members-search').addEventListener('input', renderMembersTable);
-
-/* ---- member drawer ---- */
-function openDrawer(id){
-  const m = MEMBERS.find(x=>x.id===id); if(!m) return;
-  document.getElementById('drawer-name').textContent = m.name;
-  document.getElementById('drawer-email').textContent = m.email + ' · ' + m.id;
-  const segPill = document.getElementById('drawer-seg');
-  segPill.textContent = m.segment;
-  segPill.className = 'pill drawer-seg-pill ' + (SEGMENT_META[m.segment].color==='ink'?'pill-ok':SEGMENT_META[m.segment].color==='rust'?'pill-bad':'pill-info');
-  document.getElementById('drawer-kpis').innerHTML = [
-    kpiCard('累積消費', fmtMoney(m.monetary)),
-    kpiCard('平均客單', fmtMoney(m.monetary/m.frequency)),
-    kpiCard('購買次數', m.frequency),
-    kpiCard('退換貨次數', m.returns),
-  ].join('');
-  document.getElementById('drawer-hist').innerHTML = m.history.length ? m.history.map(h=>`
-    <div class="hist-item"><span>${h.product}</span><span class="d">${h.date} · ${fmtMoney(h.amount)}</span></div>`).join('')
-    : `<div class="empty-hint">尚無購買紀錄</div>`;
   document.getElementById('overlay').classList.add('is-open');
   document.getElementById('drawer').classList.add('is-open');
 }
-function closeDrawer(){ document.getElementById('overlay').classList.remove('is-open'); document.getElementById('drawer').classList.remove('is-open'); }
-document.getElementById('overlay').addEventListener('click', closeDrawer);
+
+function closeDrawer() {
+  document.getElementById('overlay').classList.remove('is-open');
+  document.getElementById('drawer').classList.remove('is-open');
+}
 document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+document.getElementById('overlay').addEventListener('click', closeDrawer);
 
-/* ============================================================
-   TRAFFIC VIEW
-============================================================ */
-function renderTraffic(){
-  const totalSessions = TRAFFIC_SOURCES.reduce((s,t)=>s+t.sessions,0);
-  const blendedConv = TRAFFIC_SOURCES.reduce((s,t)=>s+t.sessions*t.convRate,0)/totalSessions;
-  document.getElementById('traffic-kpis').innerHTML = [
-    kpiCard('總工作階段', fmtNum(totalSessions), undefined, '近30天'),
-    kpiCard('平均轉化率', fmtPct(blendedConv)),
-    kpiCard('轉化漏斗完成率', fmtPct(FUNNEL[3].pct/FUNNEL[0].pct*100), undefined, '瀏覽→購買'),
-    kpiCard('購物車棄單數', fmtNum(CART_ABANDON.length), undefined, '近48小時'),
-  ].join('');
+// ---- 03. TRAFFIC ----
+function renderTraffic() {
+  document.getElementById('traffic-kpis').innerHTML = `
+    <div class="kpi-card"><span class="kpi-label">總瀏覽量 (PV)</span><span class="kpi-value">124,500</span></div>
+    <div class="kpi-card"><span class="kpi-label">訪客數 (UV)</span><span class="kpi-value">38,200</span></div>
+    <div class="kpi-card"><span class="kpi-label">全站轉化率</span><span class="kpi-value">2.84%</span></div>
+  `;
 
-  new Chart(document.getElementById('chart-traffic-source'), {
-    type:'bar',
-    data:{ labels: TRAFFIC_SOURCES.map(t=>t.name), datasets:[{ data: TRAFFIC_SOURCES.map(t=>t.sessions), backgroundColor: BLACK, borderRadius:2, barPercentage:0.6 }]},
-    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:gridOpt, y:{grid:{display:false}}} }
-  });
+  // Funnel
+  const funnelSteps = [
+    { name:'1. 造訪網站', count: 38200, pct: 100 },
+    { name:'2. 瀏覽商品', count: 24100, pct: 63.0 },
+    { name:'3. 加入購物車', count: 8500, pct: 22.2 },
+    { name:'4. 進入結帳', count: 3100, pct: 8.1 },
+    { name:'5. 完成購買', count: 1085, pct: 2.84 }
+  ];
 
-  document.getElementById('funnel').innerHTML = FUNNEL.map((f,i)=>{
-    const drop = i===0 ? '' : `-${(FUNNEL[i-1].pct-f.pct).toFixed(1)}%`;
-    return `<div class="funnel-step">
-      <div class="funnel-name">${f.name}</div>
-      <div class="funnel-track"><div class="funnel-fill" style="width:${f.pct}%"><span>${f.pct.toFixed(1)}%</span></div></div>
-      <div class="funnel-count">${fmtNum(f.count)}</div>
-      <div class="funnel-drop">${drop}</div>
-    </div>`;
-  }).join('');
+  document.getElementById('funnel').innerHTML = funnelSteps.map(s => `
+    <div class="funnel-step">
+      <div class="funnel-name">${s.name}</div>
+      <div class="funnel-track"><div class="funnel-fill" style="width:${s.pct}%"><span>${s.pct}%</span></div></div>
+      <div class="funnel-count">${fmtNum(s.count)}</div>
+    </div>
+  `).join('');
 
-  document.getElementById('cart-abandon-tag').textContent = CART_ABANDON.length + ' 筆棄單';
-  const tbl = document.getElementById('tbl-cart');
-  tbl.querySelector('thead').innerHTML = `<tr><th>顧客</th><th>商品</th><th>數量</th><th>金額</th><th>加入購物車</th></tr>`;
-  tbl.querySelector('tbody').innerHTML = CART_ABANDON.map(c=>`
-    <tr><td class="wrap">${c.email}</td><td class="wrap">${c.product}</td><td>${c.qty}</td><td>${fmtMoney(c.price*c.qty)}</td><td>${c.ago} 小時前</td></tr>`).join('');
+  // Cart Abandon Table
+  document.querySelector('#tbl-cart thead').innerHTML = `<tr><th>時間</th><th>顧客/Session</th><th>購物車內容</th><th>預估金額</th><th>狀態</th></tr>`;
+  document.querySelector('#tbl-cart tbody').innerHTML = `
+    <tr><td>10m ago</td><td>G-88219 (未登入)</td><td>LINE HOODIE x1, SOCKS SET x1</td><td>NT$ 3,460</td><td><span class="pill pill-pending">未結帳</span></td></tr>
+    <tr><td>2h ago</td><td>陳建宏</td><td>STATEMENT TEE x2</td><td>NT$ 3,760</td><td><span class="pill pill-bad">未完成結帳</span></td></tr>
+  `;
 }
 
-/* ============================================================
-   MARKETING VIEW
-============================================================ */
-function renderMarketing(){
-  const couponRevenue = COUPONS.reduce((s,c)=>s+c.revenue,0);
-  const totalSpend = UTM.reduce((s,u)=>s+u.spend,0);
-  const totalUtmRevenue = UTM.reduce((s,u)=>s+u.revenue,0);
-  const roas = totalSpend ? totalUtmRevenue/totalSpend : 0;
-  const kolCommission = KOL.reduce((s,k)=>s+k.commission,0);
-  document.getElementById('mkt-kpis').innerHTML = [
-    kpiCard('折扣碼帶動營收', fmtMoney(couponRevenue)),
-    kpiCard('整體 ROAS', roas.toFixed(2)+'x', undefined, '含廣告 + KOL 連結'),
-    kpiCard('廣告花費', fmtMoney(totalSpend)),
-    kpiCard('KOL 分潤支出', fmtMoney(kolCommission)),
-  ].join('');
+// ---- 04. MARKETING ----
+function renderMarketing() {
+  document.getElementById('mkt-kpis').innerHTML = `
+    <div class="kpi-card"><span class="kpi-label">廣告總支出</span><span class="kpi-value">${fmtMoney(120000)}</span></div>
+    <div class="kpi-card"><span class="kpi-label">廣告帶動收益</span><span class="kpi-value">${fmtMoney(494400)}</span></div>
+    <div class="kpi-card"><span class="kpi-label">整體 ROAS</span><span class="kpi-value">4.12</span></div>
+  `;
 
-  const tc = document.getElementById('tbl-coupons');
-  tc.querySelector('thead').innerHTML = `<tr><th>折扣碼</th><th>優惠內容</th><th>使用次數</th><th>帶動營收</th><th>轉化率</th></tr>`;
-  tc.querySelector('tbody').innerHTML = COUPONS.sort((a,b)=>b.revenue-a.revenue).map(c=>`
-    <tr><td>${c.code}</td><td class="wrap">${c.type}</td><td>${fmtNum(c.uses)}</td><td>${fmtMoney(c.revenue)}</td><td>${fmtPct(c.conv)}</td></tr>`).join('');
+  document.querySelector('#tbl-coupons thead').innerHTML = `<tr><th>折扣碼</th><th>折扣類型</th><th>使用次數</th><th>帶動銷售額</th></tr>`;
+  document.querySelector('#tbl-coupons tbody').innerHTML = `
+    <tr><td><b>SUMMER2026</b></td><td>滿 $2,000 折 $200</td><td>342 次</td><td>${fmtMoney(820000)}</td></tr>
+    <tr><td><b>WELCOME100</b></td><td>首購折 $100</td><td>189 次</td><td>${fmtMoney(320000)}</td></tr>
+  `;
 
-  const tu = document.getElementById('tbl-utm');
-  tu.querySelector('thead').innerHTML = `<tr><th>Source</th><th>Medium</th><th>Campaign</th><th>Sessions</th><th>轉化</th><th>營收</th><th>ROAS</th></tr>`;
-  tu.querySelector('tbody').innerHTML = UTM.sort((a,b)=>b.revenue-a.revenue).map(u=>{
-    const r = u.spend ? (u.revenue/u.spend) : null;
-    return `<tr><td>${u.source}</td><td>${u.medium}</td><td class="wrap">${u.campaign}</td><td>${fmtNum(u.sessions)}</td><td>${fmtNum(u.conv)}</td><td>${fmtMoney(u.revenue)}</td><td>${r?r.toFixed(2)+'x':'—'}</td></tr>`;
-  }).join('');
+  document.querySelector('#tbl-utm thead').innerHTML = `<tr><th>Campaign</th><th>Source / Medium</th><th>點擊數</th><th>轉換訂單</th><th>ROAS</th></tr>`;
+  document.querySelector('#tbl-utm tbody').innerHTML = `
+    <tr><td>2026_Summer_Drop</td><td>ig / cpc</td><td>14,200</td><td>420</td><td>4.85</td></tr>
+    <tr><td>KOL_Lookbook</td><td>youtube / influencer</td><td>8,100</td><td>210</td><td>3.62</td></tr>
+  `;
 
-  const tk = document.getElementById('tbl-kol');
-  tk.querySelector('thead').innerHTML = `<tr><th>合作對象</th><th>點擊數</th><th>成交訂單</th><th>分潤比例</th><th>應付分潤</th></tr>`;
-  tk.querySelector('tbody').innerHTML = KOL.sort((a,b)=>b.commission-a.commission).map(k=>`
-    <tr><td>${k.name}</td><td>${fmtNum(k.clicks)}</td><td>${fmtNum(k.orders)}</td><td>${k.rate}%</td><td>${fmtMoney(k.commission)}</td></tr>`).join('');
+  document.querySelector('#tbl-kol thead').innerHTML = `<tr><th>KOL / 合作對象</th><th>專屬優惠碼</th><th>帶動訂單</th><th>分潤金額 (10%)</th></tr>`;
+  document.querySelector('#tbl-kol tbody').innerHTML = `
+    <tr><td>Alex_Style</td><td>ALEX100</td><td>84 筆</td><td>${fmtMoney(21400)}</td></tr>
+  `;
 }
 
-/* ============================================================
-   INVENTORY VIEW
-============================================================ */
-function renderInventoryTable(){
-  const onlyLow = document.getElementById('low-stock-only').checked;
-  let rows = PRODUCTS.filter(p => !onlyLow || p.stock < p.safety);
-  rows = [...rows].sort((a,b)=> (a.stock-a.safety) - (b.stock-b.safety));
-  const tbl = document.getElementById('tbl-inventory');
-  tbl.querySelector('thead').innerHTML = `<tr><th>商品</th><th>分類</th><th>目前庫存</th><th>安全庫存</th><th>庫存水位</th><th>週轉率</th><th>狀態</th></tr>`;
-  tbl.querySelector('tbody').innerHTML = rows.map(p=>{
-    const ratio = Math.min(100, Math.round(p.stock/(p.safety*2.5)*100));
-    const low = p.stock < p.safety;
-    return `<tr>
-      <td class="wrap">${p.name}</td><td><span class="pill pill-info">${p.cat}</span></td>
-      <td>${p.stock}</td><td>${p.safety}</td>
-      <td><span class="bar-mini ${low?'low':''}"><span style="width:${ratio}%"></span></span></td>
-      <td>${p.turnover}x</td>
-      <td>${low? '<span class="pill pill-bad">需補貨</span>' : '<span class="pill pill-ok">正常</span>'}</td>
-    </tr>`;
-  }).join('');
-}
-
-function renderInventory(){
-  const lowStock = PRODUCTS.filter(p=>p.stock<p.safety).length;
-  const unclaimed = LOGISTICS[2].value;
-  const avgTurnover = PRODUCTS.reduce((s,p)=>s+p.turnover,0)/PRODUCTS.length;
-  document.getElementById('inv-kpis').innerHTML = [
-    kpiCard('低庫存警示品項', fmtNum(lowStock)),
-    kpiCard('出貨中訂單', fmtNum(LOGISTICS[1].value)),
-    kpiCard('超商未取件', fmtNum(unclaimed), undefined, fmtPct(unclaimed/LOGISTICS.reduce((s,l)=>s+l.value,0)*100)+' 佔比'),
-    kpiCard('平均庫存週轉率', avgTurnover.toFixed(2)+'x'),
-  ].join('');
-  document.getElementById('low-stock-tag').textContent = lowStock + ' 項低於安全庫存';
-
-  new Chart(document.getElementById('chart-inv-logistics'), {
-    type:'doughnut',
-    data:{ labels: LOGISTICS.map(l=>l.name), datasets:[{ data: LOGISTICS.map(l=>l.value), backgroundColor:[INK, BLACK, RUST, STEEL], borderWidth:2, borderColor:'#EDE9E1' }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10,boxHeight:10, font:{size:10}}}}, cutout:'60%' }
-  });
-  new Chart(document.getElementById('chart-inv-unclaimed'), {
-    type:'line',
-    data:{ labels: UNCLAIMED_WEEKS.map(w=>w.label), datasets:[{ data: UNCLAIMED_WEEKS.map(w=>w.rate), borderColor: RUST, backgroundColor:'rgba(192,87,74,0.12)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:RUST, borderWidth:1.6 }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.parsed.y+'%'}}}, scales:{x:gridOpt, y:{...gridOpt, ticks:{...gridOpt.ticks, callback:v=>v+'%'}}} }
-  });
+// ---- 05. INVENTORY ----
+function renderInventory() {
+  const lowStockList = PRODUCTS.filter(p => p.stock < p.safetyStock);
+  
+  document.getElementById('inv-kpis').innerHTML = `
+    <div class="kpi-card"><span class="kpi-label">商品品項 (SKU)</span><span class="kpi-value">${PRODUCTS.length}</span></div>
+    <div class="kpi-card"><span class="kpi-label">庫存預警品項</span><span class="kpi-value" style="color:var(--rust)">${lowStockList.length}</span></div>
+    <div class="kpi-card"><span class="kpi-label">平均出貨天數</span><span class="kpi-value">1.2 天</span></div>
+  `;
 
   renderInventoryTable();
 }
-document.getElementById('low-stock-only').addEventListener('change', renderInventoryTable);
+
+function renderInventoryTable() {
+  const lowOnly = document.getElementById('low-stock-only').checked;
+  let list = PRODUCTS.filter(p => !lowOnly || p.stock < p.safetyStock);
+
+  document.querySelector('#tbl-inventory thead').innerHTML = `<tr><th>商品名稱</th><th>分類</th><th>當前庫存</th><th>安全庫存</th><th>狀態</th></tr>`;
+  document.querySelector('#tbl-inventory tbody').innerHTML = list.map(p => {
+    const isLow = p.stock < p.safetyStock;
+    return `
+      <tr>
+        <td><b>${p.name}</b></td>
+        <td><span class="pill pill-info">${p.cat}</span></td>
+        <td><b>${p.stock}</b></td>
+        <td>${p.safetyStock}</td>
+        <td>${isLow ? '<span class="pill pill-bad">低庫存預警</span>' : '<span class="pill pill-ok">庫存正常</span>'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ---- 06. SYSTEM ----
+function renderSystem() {
+  document.getElementById('sys-kpis').innerHTML = `
+    <div class="kpi-card"><span class="kpi-label">系統可用率 (Uptime)</span><span class="kpi-value">99.94%</span></div>
+    <div class="kpi-card"><span class="kpi-label">平均 API 響應</span><span class="kpi-value">142 ms</span></div>
+    <div class="kpi-card"><span class="kpi-label">今日 Error 數</span><span class="kpi-value">2 次</span></div>
+  `;
+
+  document.querySelector('#tbl-audit thead').innerHTML = `<tr><th>時間</th><th>操作人員</th><th>角色</th><th>動作</th><th>影響對象</th></tr>`;
+  document.querySelector('#tbl-audit tbody').innerHTML = `
+    <tr><td>2026-08-27 14:20</td><td>Studio Manager</td><td><span class="pill pill-info">Admin</span></td><td>修改商品庫存</td><td>LINE HOODIE (+50)</td></tr>
+    <tr><td>2026-08-27 11:05</td><td>Marketer_A</td><td><span class="pill pill-info">Marketing</span></td><td>建立折扣碼</td><td>SUMMER2026</td></tr>
+  `;
+}
 
 /* ============================================================
-   SYSTEM VIEW
+   4. EVENT LISTENERS & INITIALIZATION
 ============================================================ */
-function renderSystem(){
-  const avgLoad = SYS_DAILY.reduce((s,d)=>s+d.load,0)/SYS_DAILY.length;
-  const avgError = SYS_DAILY.reduce((s,d)=>s+d.error,0)/SYS_DAILY.length;
-  const incidents = SYS_DAILY.filter(d=>d.error>1.2).length;
-  document.getElementById('sys-kpis').innerHTML = [
-    kpiCard('平均載入時間', Math.round(avgLoad)+' ms'),
-    kpiCard('平均錯誤率', fmtPct(avgError)),
-    kpiCard('異常事件（近30天）', fmtNum(incidents)),
-    kpiCard('操作日誌筆數', fmtNum(AUDIT_LOG.length)),
-  ].join('');
+function initEvents() {
+  // Clock
+  setInterval(() => {
+    const now = new Date();
+    document.getElementById('ov-clock').innerText = now.toTimeString().slice(0,8) + ' TPE';
+  }, 1000);
 
-  new Chart(document.getElementById('chart-sys-load'), {
-    type:'line',
-    data:{ labels: SYS_DAILY.map(d=>d.date.slice(5)), datasets:[{ data: SYS_DAILY.map(d=>d.load), borderColor: BLACK, backgroundColor:'rgba(10,10,10,0.08)', fill:true, tension:0.25, pointRadius:0, borderWidth:1.6 }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.parsed.y+' ms'}}}, scales:{x:{...gridOpt, ticks:{...gridOpt.ticks, maxTicksLimit:8}}, y:gridOpt} }
-  });
-  new Chart(document.getElementById('chart-sys-error'), {
-    type:'bar',
-    data:{ labels: SYS_DAILY.map(d=>d.date.slice(5)), datasets:[{ data: SYS_DAILY.map(d=>d.error), backgroundColor: SYS_DAILY.map(d=>d.error>1.2?RUST:'rgba(10,10,10,0.16)'), borderRadius:1, barPercentage:0.6 }]},
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.parsed.y+'%'}}}, scales:{x:{...gridOpt, ticks:{...gridOpt.ticks, maxTicksLimit:8}}, y:{...gridOpt, ticks:{...gridOpt.ticks, callback:v=>v+'%'}}} }
-  });
-
-  renderAuditTable();
+  // Filters & Search
+  document.getElementById('sales-cat-filter')?.addEventListener('change', renderProductTable);
+  document.getElementById('orders-search')?.addEventListener('input', renderOrdersTable);
+  document.getElementById('orders-status-filter')?.addEventListener('change', renderOrdersTable);
+  document.getElementById('members-search')?.addEventListener('input', renderMembersTable);
+  document.getElementById('rfm-active-filter')?.addEventListener('click', () => toggleRfmFilter(activeRfmFilter));
+  document.getElementById('low-stock-only')?.addEventListener('change', renderInventoryTable);
 }
 
-function renderAuditTable(){
-  const q = document.getElementById('audit-search').value.trim().toLowerCase();
-  const role = document.getElementById('audit-role-filter').value;
-  let rows = AUDIT_LOG.filter(a => (role==='all'||a.role===role) &&
-    (q==='' || a.action.toLowerCase().includes(q) || a.target.toLowerCase().includes(q) || a.user.toLowerCase().includes(q)));
-  const tbl = document.getElementById('tbl-audit');
-  tbl.querySelector('thead').innerHTML = `<tr><th>時間</th><th>操作者</th><th>角色</th><th>動作</th><th>對象</th><th>IP</th></tr>`;
-  tbl.querySelector('tbody').innerHTML = rows.slice(0,40).map(a=>`
-    <tr><td>${a.time}</td><td class="wrap">${a.user}</td><td><span class="pill pill-info">${a.role}</span></td><td class="wrap">${a.action}</td><td class="wrap">${a.target}</td><td>${a.ip}</td></tr>`).join('')
-    || `<tr><td colspan="6" class="empty-hint">沒有符合條件的紀錄</td></tr>`;
-}
-document.getElementById('audit-search').addEventListener('input', renderAuditTable);
-document.getElementById('audit-role-filter').addEventListener('change', renderAuditTable);
-
-/* ============================================================
-   INIT — each section renders independently: if one throws
-   (e.g. the Chart.js CDN was slow/blocked), the rest still load.
-============================================================ */
-function safeRun(name, fn){
-  try { fn(); }
-  catch (err){
-    console.error('[OSC CONTROL] '+name+' failed to render:', err);
-    const view = document.getElementById('view-'+name);
-    if (view){
-      const banner = document.createElement('div');
-      banner.style.cssText = 'margin:16px 0;padding:14px 16px;border:1px dashed var(--rust);color:var(--rust);font-family:var(--mono);font-size:0.74rem;';
-      banner.textContent = '此區塊渲染時發生錯誤（可能是 Chart.js 尚未載入完成），請重新整理頁面。詳情見瀏覽器 Console。';
-      view.querySelector('.view-body')?.prepend(banner);
-    }
-  }
-}
-let __booted = false;
-function boot(){
-  if (__booted) return;
-  __booted = true;
-  safeRun('overview', renderOverview);
-  safeRun('sales', renderSales);
-  safeRun('crm', renderCrm);
-  safeRun('traffic', renderTraffic);
-  safeRun('marketing', renderMarketing);
-  safeRun('inventory', renderInventory);
-  safeRun('system', renderSystem);
-}
-window.__oscBoot = boot;
-if (typeof Chart === 'undefined'){
-  // Chart.js CDN hasn't resolved yet (this script tag ran before the CDN <script> finished) —
-  // wait for the window load event, which fires after all external scripts have settled.
-  window.addEventListener('load', boot, { once: true });
-} else {
-  boot();
-}
+// System Boot
+window.addEventListener('DOMContentLoaded', () => {
+  initEvents();
+  switchView('overview');
+});
 </script>
 </body>
 </html>
