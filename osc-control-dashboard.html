@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSC CONTROL — ONE STROKE CLUB 後台管理原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js" crossorigin="anonymous" onerror="
+  console.warn('[OSC CONTROL] cdnjs Chart.js failed to load — falling back to jsdelivr');
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js';
+  s.crossOrigin='anonymous';
+  s.onload=function(){ if (window.__oscBoot) window.__oscBoot(); };
+  s.onerror=function(){ console.error('[OSC CONTROL] Both Chart.js CDNs failed to load. Check network/firewall.'); if (window.__oscBoot) window.__oscBoot(); };
+  document.head.appendChild(s);
+"></script>
+<style>
+:root{
+  --black:#0a0a0a;
+  --charcoal:#151515;
+  --panel:#1b1b1b;
+  --panel-2:#1f1f1f;
+  --offwhite:#EDE9E1;
+  --offwhite-deep:#E3DED3;
+  --white:#ffffff;
+  --steel:#9aa0a6;
+  --steel-light:#bec2c6;
+  --steel-dim:#6b7075;
+  --line-dark:rgba(190,194,198,0.16);
+  --line-light:rgba(10,10,10,0.12);
+  --ink:#E8B23D;      /* stamp-ink amber — positive / highlight */
+  --rust:#C0574A;     /* alert / negative */
+  --rust-dim:rgba(192,87,74,0.14);
+  --ink-dim:rgba(232,178,61,0.14);
+
+  --display:"Archivo Black","Space Grotesk",sans-serif;
+  --label:"Space Grotesk",sans-serif;
+  --body:"Inter",sans-serif;
+  --mono:"JetBrains Mono",monospace;
+
+  --ease:cubic-bezier(0.22,1,0.36,1);
+  --sidebar-w:236px;
+}
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{
+  margin:0; background:var(--offwhite); color:var(--black);
+  font-family:var(--body); font-weight:400; -webkit-font-smoothing:antialiased;
+}
+button{ font:inherit; cursor:pointer; background:none; color:inherit; border:0; }
+input,select{ font:inherit; }
+::selection{ background:var(--ink); color:var(--black); }
+
+/* ===== layout shell ===== */
+.shell{ display:grid; grid-template-columns:var(--sidebar-w) 1fr; min-height:100vh; }
+
+/* ===== sidebar ===== */
+.sidebar{
+  background:var(--black); color:var(--offwhite);
+  padding:22px 16px; position:sticky; top:0; height:100vh; overflow-y:auto;
+  display:flex; flex-direction:column; gap:26px;
+}
+.brand{ display:flex; align-items:center; gap:10px; padding:0 6px; }
+.brand svg{ width:26px; height:26px; flex-shrink:0; }
+.brand-text{ font-family:var(--display); font-size:0.86rem; letter-spacing:0.02em; line-height:1.15; }
+.brand-sub{ font-family:var(--label); font-size:0.62rem; letter-spacing:0.2em; color:var(--steel); margin-top:2px; }
+
+.nav-group-label{ font-family:var(--label); font-size:0.66rem; letter-spacing:0.18em; color:var(--steel-dim); padding:0 10px; margin-bottom:6px; text-transform:uppercase; }
+.nav{ display:flex; flex-direction:column; gap:2px; }
+.nav-item{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left;
+  padding:10px 10px; border-radius:2px; color:var(--steel-light);
+  font-family:var(--label); font-size:0.82rem; letter-spacing:0.01em;
+  border-left:2px solid transparent; transition:background 160ms ease, color 160ms ease;
+}
+.nav-item .num{ font-family:var(--mono); font-size:0.68rem; color:var(--steel-dim); width:16px; }
+.nav-item:hover{ background:rgba(255,255,255,0.04); color:var(--white); }
+.nav-item.is-active{ background:rgba(232,178,61,0.08); color:var(--white); border-left-color:var(--ink); }
+.nav-item.is-active .num{ color:var(--ink); }
+
+.sidebar-foot{ margin-top:auto; border-top:1px solid var(--line-dark); padding-top:14px; display:flex; align-items:center; gap:10px; }
+.avatar{ width:30px; height:30px; border-radius:2px; background:var(--panel-2); border:1px solid var(--line-dark); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.68rem; color:var(--ink); }
+.who{ font-family:var(--label); font-size:0.74rem; color:var(--offwhite); }
+.who-role{ font-family:var(--mono); font-size:0.62rem; color:var(--steel-dim); }
+
+/* ===== main ===== */
+.main{ min-width:0; }
+.topbar{
+  position:sticky; top:0; z-index:20; background:rgba(237,233,225,0.92); backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line-light);
+  padding:18px clamp(20px,3vw,36px); display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;
+}
+.topbar-title{ font-family:var(--display); font-size:1.3rem; letter-spacing:-0.01em; }
+.topbar-sub{ font-family:var(--label); font-size:0.72rem; letter-spacing:0.1em; color:var(--steel-dim); margin-top:4px; text-transform:uppercase; }
+.topbar-tools{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+.seg{ display:flex; border:1px solid var(--line-light); border-radius:2px; overflow:hidden; }
+.seg button{ padding:8px 13px; font-family:var(--mono); font-size:0.72rem; color:var(--steel-dim); border-right:1px solid var(--line-light); }
+.seg button:last-child{ border-right:0; }
+.seg button.is-active{ background:var(--black); color:var(--ink); }
+
+.field{ display:flex; align-items:center; gap:8px; border:1px solid var(--line-light); border-radius:2px; padding:8px 12px; background:var(--white); }
+.field input, .field select{ border:0; background:transparent; outline:none; font-size:0.8rem; min-width:120px; }
+.field-icon{ color:var(--steel-dim); font-size:0.8rem; }
+
+.view{ display:none; padding:26px clamp(20px,3vw,36px) 60px; }
+.view.is-active{ display:block; }
+
+.section-label{ display:flex; align-items:baseline; gap:10px; margin:34px 0 14px; }
+.section-label h2{ font-family:var(--display); font-size:0.98rem; margin:0; letter-spacing:-0.01em; }
+.section-label .tag{ font-family:var(--mono); font-size:0.66rem; color:var(--steel-dim); border:1px dashed var(--line-light); padding:2px 8px; border-radius:2px; }
+.section-label::after{ content:""; flex:1; height:1px; background:var(--line-light); }
+
+/* ===== KPI stamp cards ===== */
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:1px; background:var(--line-light); border:1px solid var(--line-light); }
+.kpi-card{
+  background:var(--offwhite); padding:18px 18px 16px; position:relative;
+}
+.kpi-card::before{ content:""; position:absolute; top:8px; left:8px; width:6px; height:6px; border-top:1px solid var(--steel-dim); border-left:1px solid var(--steel-dim); }
+.kpi-card::after{ content:""; position:absolute; bottom:8px; right:8px; width:6px; height:6px; border-bottom:1px solid var(--steel-dim); border-right:1px solid var(--steel-dim); }
+.kpi-label{ display:block; font-family:var(--label); font-size:0.68rem; letter-spacing:0.1em; color:var(--steel-dim); text-transform:uppercase; margin-bottom:10px; }
+.kpi-value{ display:block; font-family:var(--mono); font-size:1.5rem; font-weight:600; letter-spacing:-0.01em; }
+.kpi-delta{ display:inline-flex; align-items:center; gap:4px; font-family:var(--mono); font-size:0.72rem; margin-top:8px; padding:2px 6px; border-radius:2px; }
+.kpi-delta.up{ color:#7a5a10; background:var(--ink-dim); }
+.kpi-delta.down{ color:var(--rust); background:var(--rust-dim); }
+.kpi-note{ font-family:var(--mono); font-size:0.68rem; color:var(--steel-dim); margin-top:8px; display:block; }
+
+/* ===== generic panel/card ===== */
+.grid-2{ display:grid; grid-template-columns:1.4fr 1fr; gap:1px; background:var(--line-light); border:1px solid var(--line-light); }
+.grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line-light); border:1px solid var(--line-light); }
+.grid-2 > *, .grid-3 > *{ background:var(--offwhite); }
+.card{ padding:20px; }
+.card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; gap:10px; flex-wrap:wrap; }
+.card-title{ font-family:var(--label); font-size:0.78rem; letter-spacing:0.04em; }
+.card-title .n{ color:var(--steel-dim); font-family:var(--mono); font-weight:400; }
+.chart-wrap{ position:relative; height:230px; }
+.chart-wrap.tall{ height:300px; }
+.chart-wrap.short{ height:150px; }
+
+/* ===== tables ===== */
+.table-toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+.table-scroll{ overflow-x:auto; border:1px solid var(--line-light); background:var(--white); }
+table{ width:100%; border-collapse:collapse; font-size:0.8rem; min-width:640px; }
+thead th{
+  text-align:left; font-family:var(--label); font-size:0.66rem; letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--steel-dim); padding:11px 14px; border-bottom:1px solid var(--line-light); background:var(--offwhite-deep);
+  white-space:nowrap; cursor:pointer; user-select:none;
+}
+thead th.sort-active{ color:var(--black); }
+thead th .arrow{ font-size:0.6rem; margin-left:4px; opacity:0.6; }
+tbody td{ padding:10px 14px; border-bottom:1px solid var(--line-light); font-family:var(--mono); font-size:0.78rem; white-space:nowrap; }
+tbody td.wrap{ white-space:normal; font-family:var(--body); }
+tbody tr:hover{ background:var(--offwhite); cursor:default; }
+tbody tr.clickable:hover{ background:var(--ink-dim); cursor:pointer; }
+.pill{ display:inline-block; padding:3px 9px; border-radius:20px; font-family:var(--mono); font-size:0.68rem; border:1px solid transparent; }
+.pill-ok{ background:var(--ink-dim); color:#7a5a10; }
+.pill-pending{ background:rgba(154,160,166,0.16); color:var(--steel-dim); border-color:var(--line-light); }
+.pill-bad{ background:var(--rust-dim); color:var(--rust); }
+.pill-info{ background:rgba(10,10,10,0.06); color:var(--black); }
+
+.bar-mini{ width:70px; height:6px; background:var(--line-light); border-radius:3px; overflow:hidden; display:inline-block; vertical-align:middle; }
+.bar-mini > span{ display:block; height:100%; background:var(--ink); }
+.bar-mini.low > span{ background:var(--rust); }
+
+.empty-hint{ font-family:var(--mono); font-size:0.72rem; color:var(--steel-dim); padding:30px; text-align:center; }
+
+/* ===== funnel ===== */
+.funnel{ display:flex; flex-direction:column; gap:2px; }
+.funnel-step{ display:grid; grid-template-columns:130px 1fr 90px 70px; align-items:center; gap:14px; }
+.funnel-name{ font-family:var(--label); font-size:0.76rem; }
+.funnel-track{ height:26px; background:var(--line-light); position:relative; }
+.funnel-fill{ height:100%; background:linear-gradient(90deg,var(--black),var(--panel-2)); display:flex; align-items:center; padding-left:10px; }
+.funnel-fill span{ font-family:var(--mono); font-size:0.68rem; color:var(--ink); }
+.funnel-count{ font-family:var(--mono); font-size:0.76rem; text-align:right; }
+.funnel-drop{ font-family:var(--mono); font-size:0.68rem; color:var(--rust); text-align:right; }
+
+/* ===== rfm grid ===== */
+.rfm-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line-light); border:1px solid var(--line-light); margin-bottom:16px; }
+.rfm-seg{ background:var(--offwhite); padding:14px 16px; cursor:pointer; transition:background 140ms ease; border-left:3px solid transparent; }
+.rfm-seg:hover{ background:var(--ink-dim); }
+.rfm-seg.is-active{ background:var(--black); color:var(--offwhite); border-left-color:var(--ink); }
+.rfm-seg.is-active .rfm-count{ color:var(--ink); }
+.rfm-seg.is-active .rfm-desc{ color:var(--steel-light); }
+.rfm-name{ font-family:var(--label); font-size:0.76rem; margin-bottom:6px; }
+.rfm-count{ font-family:var(--mono); font-size:1.15rem; font-weight:600; }
+.rfm-desc{ font-family:var(--mono); font-size:0.64rem; color:var(--steel-dim); margin-top:4px; }
+
+/* ===== alerts / list ===== */
+.alert-list{ display:flex; flex-direction:column; }
+.alert-row{ display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px dashed var(--line-light); }
+.alert-row:last-child{ border-bottom:0; }
+.alert-dot{ width:7px; height:7px; border-radius:50%; background:var(--rust); flex-shrink:0; }
+.alert-dot.ink{ background:var(--ink); }
+.alert-text{ font-size:0.8rem; flex:1; }
+.alert-text b{ font-family:var(--mono); }
+.alert-meta{ font-family:var(--mono); font-size:0.68rem; color:var(--steel-dim); }
+
+/* ===== overview link tiles ===== */
+.tile-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1px; background:var(--line-light); border:1px solid var(--line-light); margin-top:16px; }
+.tile{ background:var(--offwhite); padding:20px; text-align:left; display:flex; flex-direction:column; gap:10px; transition:background 140ms ease; }
+.tile:hover{ background:var(--ink-dim); }
+.tile-num{ font-family:var(--mono); font-size:0.68rem; color:var(--steel-dim); }
+.tile-title{ font-family:var(--display); font-size:0.82rem; }
+.tile-desc{ font-family:var(--body); font-size:0.76rem; color:var(--steel-dim); line-height:1.5; }
+.tile-metric{ font-family:var(--mono); font-size:1.1rem; margin-top:auto; padding-top:6px; }
+
+/* ===== slide-over profile panel ===== */
+.overlay{ position:fixed; inset:0; background:rgba(10,10,10,0.5); z-index:90; opacity:0; pointer-events:none; transition:opacity 220ms var(--ease); }
+.overlay.is-open{ opacity:1; pointer-events:auto; }
+.drawer{
+  position:fixed; top:0; right:0; height:100vh; width:min(420px,92vw); background:var(--offwhite);
+  z-index:91; transform:translateX(100%); transition:transform 260ms var(--ease); box-shadow:-8px 0 30px rgba(0,0,0,0.2);
+  display:flex; flex-direction:column;
+}
+.drawer.is-open{ transform:translateX(0); }
+.drawer-head{ padding:20px; border-bottom:1px solid var(--line-light); display:flex; justify-content:space-between; align-items:flex-start; }
+.drawer-close{ font-family:var(--mono); font-size:0.9rem; color:var(--steel-dim); }
+.drawer-body{ padding:20px; overflow-y:auto; flex:1; }
+.drawer-body .kpi-row{ margin-bottom:18px; }
+.drawer-name{ font-family:var(--display); font-size:1.05rem; }
+.drawer-email{ font-family:var(--mono); font-size:0.7rem; color:var(--steel-dim); margin-top:4px; }
+.drawer-seg-pill{ margin-top:10px; }
+.hist-item{ display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px dashed var(--line-light); font-size:0.78rem; }
+.hist-item .d{ font-family:var(--mono); font-size:0.7rem; color:var(--steel-dim); }
+
+/* ===== footer note ===== */
+.proto-note{ margin-top:40px; padding:16px 18px; border:1px dashed var(--line-light); font-family:var(--mono); font-size:0.72rem; color:var(--steel-dim); line-height:1.7; }
+.proto-note b{ color:var(--black); }
+
+@media (max-width:900px){
+  .shell{ grid-template-columns:1fr; }
+  .sidebar{ position:relative; height:auto; flex-direction:row; overflow-x:auto; align-items:center; }
+  .nav{ flex-direction:row; }
+  .nav-group-label{ display:none; }
+  .sidebar-foot{ margin-top:0; border-top:0; }
+  .grid-2, .grid-3{ grid-template-columns:1fr; }
+  .funnel-step{ grid-template-columns:90px 1fr 60px; }
+  .funnel-drop{ display:none; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" fill="none"><path d="M2 28 C 10 28, 10 12, 18 12 C 26 12, 26 28, 34 28" stroke="#E8B23D" stroke-width="3" stroke-linecap="round"/></svg>
+      <div>
+        <div class="brand-text">OSC CONTROL</div>
+        <div class="brand-sub">ADMIN PROTOTYPE</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="nav-group-label">總覽</div>
+      <div class="nav">
+        <button class="nav-item is-active" data-view="overview"><span class="num">00</span>控制台總覽</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="nav-group-label">數據系統</div>
+      <div class="nav">
+        <button class="nav-item" data-view="sales"><span class="num">01</span>訂單與銷售</button>
+        <button class="nav-item" data-view="crm"><span class="num">02</span>客戶與會員</button>
+        <button class="nav-item" data-view="traffic"><span class="num">03</span>流量與行為</button>
+        <button class="nav-item" data-view="marketing"><span class="num">04</span>行銷與廣告</button>
+        <button class="nav-item" data-view="inventory"><span class="num">05</span>庫存與供應鏈</button>
+        <button class="nav-item" data-view="system"><span class="num">06</span>系統效能與稽核</button>
+      </div>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="avatar">MG</div>
+      <div>
+        <div class="who">Studio Manager</div>
+        <div class="who-role">role · admin · demo</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+
+    <!-- ---------- OVERVIEW ---------- -->
+    <section class="view is-active" id="view-overview">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">控制台總覽</div>
+          <div class="topbar-sub">Control Tower — 六大數據系統原型 · 示範資料</div>
+        </div>
+        <div class="topbar-tools">
+          <div class="field"><span class="field-icon">◐</span><span id="ov-clock" style="font-family:var(--mono); font-size:0.78rem;"></span></div>
+        </div>
+      </div>
+      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+        <div class="kpi-row" id="ov-kpis"></div>
+
+        <div class="grid-2" style="margin-top:1px;">
+          <div class="card">
+            <div class="card-head"><div class="card-title">近 90 天營業額趨勢</div><div class="card-title n">daily revenue, NT$</div></div>
+            <div class="chart-wrap tall"><canvas id="chart-ov-revenue"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">需要留意</div><div class="card-title n">alerts</div></div>
+            <div class="alert-list" id="ov-alerts"></div>
+          </div>
+        </div>
+
+        <div class="section-label"><h2>六大系統速覽</h2><span class="tag">click to open</span></div>
+        <div class="tile-grid" id="ov-tiles"></div>
+
+        <div class="proto-note">
+          <b>關於這個原型：</b>版面、圖表與互動邏輯皆為真實可操作的介面骨架；<b>所有數字皆為示範資料</b>，用於和工程團隊 / 老闆討論資訊架構、指標優先順序與視覺呈現方向。實際上線需串接訂單資料庫、金流服務商 (信用卡 / LINE Pay / 超商代收)、廣告後台 (Meta / Google Ads) 與物流商 API — 這些屬於後端整合工作，不在此前端原型範圍內。
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- SALES ---------- -->
+    <section class="view" id="view-sales">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">01 · 訂單與銷售數據</div>
+          <div class="topbar-sub">Order &amp; Sales Analytics</div>
+        </div>
+        <div class="topbar-tools">
+          <div class="seg" id="sales-range">
+            <button data-range="7">7D</button>
+            <button data-range="30" class="is-active">30D</button>
+            <button data-range="90">90D</button>
+          </div>
+        </div>
+      </div>
+      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+        <div class="kpi-row" id="sales-kpis"></div>
+
+        <div class="grid-2" style="margin-top:1px;">
+          <div class="card">
+            <div class="card-head"><div class="card-title">營業額 / 訂單數 趨勢</div><div class="card-title n">revenue vs orders</div></div>
+            <div class="chart-wrap tall"><canvas id="chart-sales-trend"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">金流通路佔比與成功率</div><div class="card-title n">payment channels</div></div>
+            <div class="chart-wrap short"><canvas id="chart-sales-payment"></canvas></div>
+            <div id="payment-legend" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <div class="section-label"><h2>商品銷售榜</h2><span class="tag" id="sales-rank-tag">by revenue</span></div>
+        <div class="table-toolbar">
+          <div class="seg" id="sales-sort">
+            <button data-sort="revenue" class="is-active">依銷售額</button>
+            <button data-sort="units">依銷量</button>
+            <button data-sort="margin">依毛利率</button>
+          </div>
+          <div class="field"><span class="field-icon">▾</span>
+            <select id="sales-cat-filter">
+              <option value="all">全部分類</option>
+              <option value="TEE">TEE</option>
+              <option value="HOODIE">HOODIE</option>
+              <option value="ACC">配件 ACC</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-scroll"><table id="tbl-products"><thead></thead><tbody></tbody></table></div>
+
+        <div class="section-label"><h2>近期訂單</h2><span class="tag" id="orders-count-tag"></span></div>
+        <div class="table-toolbar">
+          <div class="field"><span class="field-icon">⌕</span><input type="text" id="orders-search" placeholder="搜尋訂單編號 / 顧客"></div>
+          <div class="field"><span class="field-icon">▾</span>
+            <select id="orders-status-filter">
+              <option value="all">全部狀態</option>
+              <option value="done">已完成</option>
+              <option value="processing">處理中</option>
+              <option value="cancelled">已取消</option>
+              <option value="refunded">已退款</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-scroll"><table id="tbl-orders"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ---------- CRM ---------- -->
+    <section class="view" id="view-crm">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">02 · 客戶與會員數據</div>
+          <div class="topbar-sub">CRM &amp; Customer Analytics</div>
+        </div>
+      </div>
+      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+        <div class="kpi-row" id="crm-kpis"></div>
+
+        <div class="grid-2" style="margin-top:1px;">
+          <div class="card">
+            <div class="card-head"><div class="card-title">新會員成長</div><div class="card-title n">new members / month</div></div>
+            <div class="chart-wrap"><canvas id="chart-crm-growth"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">回購 vs 首購</div><div class="card-title n">repeat purchase ratio</div></div>
+            <div class="chart-wrap"><canvas id="chart-crm-repeat"></canvas></div>
+          </div>
+        </div>
+
+        <div class="section-label"><h2>RFM 會員分群</h2><span class="tag">click a segment to filter table below</span></div>
+        <div class="rfm-grid" id="rfm-grid"></div>
+
+        <div class="table-toolbar">
+          <div class="field"><span class="field-icon">⌕</span><input type="text" id="members-search" placeholder="搜尋姓名 / Email"></div>
+          <div class="field" id="rfm-active-filter" style="display:none;"><span class="field-icon">✕</span><span id="rfm-active-label" style="font-family:var(--mono); font-size:0.78rem;"></span></div>
+        </div>
+        <div class="table-scroll"><table id="tbl-members"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ---------- TRAFFIC ---------- -->
+    <section class="view" id="view-traffic">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">03 · 流量與行為數據</div>
+          <div class="topbar-sub">Traffic &amp; Behavior Tracking</div>
+        </div>
+      </div>
+      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+        <div class="kpi-row" id="traffic-kpis"></div>
+
+        <div class="grid-2" style="margin-top:1px;">
+          <div class="card">
+            <div class="card-head"><div class="card-title">流量來源</div><div class="card-title n">sessions by channel</div></div>
+            <div class="chart-wrap"><canvas id="chart-traffic-source"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">轉化漏斗</div><div class="card-title n">view → cart → checkout → purchase</div></div>
+            <div class="funnel" id="funnel" style="margin-top:6px;"></div>
+          </div>
+        </div>
+
+        <div class="section-label"><h2>購物車棄單</h2><span class="tag" id="cart-abandon-tag"></span></div>
+        <div class="table-scroll"><table id="tbl-cart"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ---------- MARKETING ---------- -->
+    <section class="view" id="view-marketing">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">04 · 行銷與廣告效果</div>
+          <div class="topbar-sub">Marketing &amp; Campaign Performance</div>
+        </div>
+      </div>
+      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+        <div class="kpi-row" id="mkt-kpis"></div>
+
+        <div class="section-label"><h2>折扣碼成效</h2><span class="tag">coupon performance</span></div>
+        <div class="table-scroll"><table id="tbl-coupons"><thead></thead><tbody></tbody></table></div>
+
+        <div class="section-label"><h2>UTM 廣告 / 內容連結追蹤</h2><span class="tag">utm tracking</span></div>
+        <div class="table-scroll"><table id="tbl-utm"><thead></thead><tbody></tbody></table></div>
+
+        <div class="section-label"><h2>KOL / 聯盟行銷分潤</h2><span class="tag">affiliate</span></div>
+        <div class="table-scroll"><table id="tbl-kol"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ---------- INVENTORY ---------- -->
+    <section class="view" id="view-inventory">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">05 · 庫存與供應鏈</div>
+          <div class="topbar-sub">Inventory &amp; Logistics Tracking</div>
+        </div>
+      </div>
+      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+        <div class="kpi-row" id="inv-kpis"></div>
+
+        <div class="grid-2" style="margin-top:1px;">
+          <div class="card">
+            <div class="card-head"><div class="card-title">物流狀態分布</div><div class="card-title n">shipment status</div></div>
+            <div class="chart-wrap"><canvas id="chart-inv-logistics"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">超商未取件率（近 8 週）</div><div class="card-title n">unclaimed pickup rate</div></div>
+            <div class="chart-wrap"><canvas id="chart-inv-unclaimed"></canvas></div>
+          </div>
+        </div>
+
+        <div class="section-label"><h2>庫存預警</h2><span class="tag" id="low-stock-tag"></span></div>
+        <div class="table-toolbar">
+          <label style="display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:0.76rem; color:var(--steel-dim);">
+            <input type="checkbox" id="low-stock-only"> 只顯示低於安全庫存
+          </label>
+        </div>
+        <div class="table-scroll"><table id="tbl-inventory"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- ---------- SYSTEM ---------- -->
+    <section class="view" id="view-system">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title">06 · 系統效能與安全紀錄</div>
+          <div class="topbar-sub">System Performance &amp; Audit Logs</div>
+        </div>
+      </div>
+      <div class="view-body" style="padding:26px clamp(20px,3vw,36px) 60px;">
+        <div class="kpi-row" id="sys-kpis"></div>
+
+        <div class="grid-2" style="margin-top:1px;">
+          <div class="card">
+            <div class="card-head"><div class="card-title">頁面載入時間（近 30 天）</div><div class="card-title n">avg load time, ms</div></div>
+            <div class="chart-wrap"><canvas id="chart-sys-load"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><div class="card-title">錯誤率</div><div class="card-title n">error rate %</div></div>
+            <div class="chart-wrap"><canvas id="chart-sys-error"></canvas></div>
+          </div>
+        </div>
+
+        <div class="section-label"><h2>操作日誌</h2><span class="tag">audit log</span></div>
+        <div class="table-toolbar">
+          <div class="field"><span class="field-icon">⌕</span><input type="text" id="audit-search" placeholder="搜尋操作 / 對象"></div>
+          <div class="field"><span class="field-icon">▾</span>
+            <select id="audit-role-filter">
+              <option value="all">全部角色</option>
+              <option value="admin">Admin</option>
+              <option value="staff">Staff</option>
+              <option value="marketing">Marketing</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-scroll"><table id="tbl-audit"><thead></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ============ member drawer ============ -->
+<div class="overlay" id="overlay"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div>
+      <div class="drawer-name" id="drawer-name"></div>
+      <div class="drawer-email" id="drawer-email"></div>
+      <span class="pill drawer-seg-pill" id="drawer-seg"></span>
+    </div>
+    <button class="drawer-close" id="drawer-close">CLOSE ✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="kpi-row" id="drawer-kpis"></div>
+    <div class="section-label" style="margin-top:0;"><h2>購買歷史</h2></div>
+    <div id="drawer-hist"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   OSC CONTROL — demo data + interactions
+   All data below is randomly generated (seeded) for prototyping.
+============================================================ */
+
+// ---- seeded RNG ----
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const rand = mulberry32(20260827);
+const pick = (arr) => arr[Math.floor(rand() * arr.length)];
+const randInt = (min, max) => Math.floor(rand() * (max - min + 1)) + min;
+
+// ---- formatters ----
+const fmtMoney = (n) => 'NT$ ' + Math.round(n).toLocaleString('en-US');
+const fmtNum = (n) => Math.round(n).toLocaleString('en-US');
+const fmtPct = (n, digits=1) => n.toFixed(digits) + '%';
+const todayDate = new Date('2026-08-27T09:00:00');
+function dateStr(d){ return d.toISOString().slice(0,10); }
+function addDays(base, delta){ const d = new Date(base); d.setDate(d.getDate()+delta); return d; }
+function monthLabel(d){ return (d.getMonth()+1) + '月'; }
+
+/* ============================================================
+   1. DAILY SALES SERIES (90 days)
+============================================================ */
+const DAILY = [];
+for (let i = 89; i >= 0; i--){
+  const d = addDays(todayDate, -i);
+  const weekday = d.getDay();
+  const weekendBoost = (weekday === 0 || weekday === 6) ? 1.35 : 1;
+  const trend = 1 + (89 - i) * 0.0035; // slow growth over the period
+  const noise = 0.8 + rand() * 0.4;
+  const base = 42000 * weekendBoost * trend * noise;
+  const orders = Math.max(6, Math.round(base / (1450 + rand()*300)));
+  const revenue = Math.round(base);
+  const refunds = rand() < 0.14 ? randInt(1,3) : 0;
+  const cancellations = rand() < 0.18 ? randInt(1,4) : 0;
+  DAILY.push({ date: dateStr(d), revenue, orders, aov: revenue/orders, refunds, cancellations });
+}
+function sliceDays(n){ return DAILY.slice(DAILY.length - n); }
+
+/* ============================================================
+   2. PRODUCTS
+============================================================ */
+const PRODUCT_LIST = [
+  { name:'ONE STROKE TEE', cat:'TEE', price:1680, cost:590 },
+  { name:'STATEMENT TEE', cat:'TEE', price:1880, cost:640 },
+  { name:'WAVE POCKET TEE', cat:'TEE', price:1580, cost:560 },
+  { name:'LINE HOODIE', cat:'HOODIE', price:2980, cost:1180 },
+  { name:'STATEMENT HOODIE', cat:'HOODIE', price:3280, cost:1320 },
+  { name:'WAVE CREWNECK', cat:'HOODIE', price:2680, cost:1080 },
+  { name:'LINE CAP', cat:'ACC', price:980, cost:340 },
+  { name:'TOTE BAG', cat:'ACC', price:780, cost:260 },
+  { name:'SOCKS SET', cat:'ACC', price:480, cost:150 },
+];
+const PRODUCTS = PRODUCT_LIST.map((p, i) => {
+  const units = randInt(60, 420) * (p.cat === 'ACC' ? 1.4 : 1) | 0;
+  const revenue = units * p.price;
+  const margin = ((p.price - p.cost) / p.price) * 100;
+  const stock = randInt(4, 260);
+  const turnover = +(units / (stock + units*0.3)).toFixed(2);
+  return { id:'P0'+(i+1), ...p, units, revenue, margin, stock, safety: randInt(15,40), turnover };
+});
+
+/* ============================================================
+   3. PAYMENT CHANNELS
+============================================================ */
+const PAYMENTS = [
+  { name:'信用卡', share:52, success:96.4 },
+  { name:'LINE Pay', share:24, success:98.1 },
+  { name:'超商取貨付款', share:18, success:88.7 },
+  { name:'Apple Pay', share:6, success:97.9 },
+];
+
+/* ============================================================
+   4. ORDERS
+============================================================ */
+const FIRST = ['林','陳','張','李','王','黃','吳','劉','蔡','楊','許','鄭','謝','郭','洪'];
+const STATUS_LIST = [
+  { key:'done', label:'已完成', cls:'pill-ok' },
+  { key:'processing', label:'處理中', cls:'pill-pending' },
+  { key:'cancelled', label:'已取消', cls:'pill-info' },
+  { key:'refunded', label:'已退款', cls:'pill-bad' },
+];
+const ORDERS = [];
+for (let i = 0; i < 64; i++){
+  const d = addDays(todayDate, -randInt(0,29));
+  const items = randInt(1,3);
+  const amount = items * pick(PRODUCT_LIST).price + randInt(-100,150);
+  const statusRoll = rand();
+  const status = statusRoll < 0.78 ? STATUS_LIST[0] : statusRoll < 0.90 ? STATUS_LIST[1] : statusRoll < 0.96 ? STATUS_LIST[2] : STATUS_LIST[3];
+  ORDERS.push({
+    id: 'OSC-'+(48000+i),
+    customer: pick(FIRST) + '先生/小姐'.slice(rand()<0.5?0:2),
+    date: dateStr(d),
+    items, amount: Math.max(480, amount),
+    payment: pick(PAYMENTS).name,
+    status,
+  });
+}
+ORDERS.sort((a,b)=> b.date.localeCompare(a.date));
+
+/* ============================================================
+   5. MEMBERS + RFM
+============================================================ */
+const MEMBERS = [];
+for (let i = 0; i < 150; i++){
+  const joinDaysAgo = randInt(10, 540);
+  const joinDate = addDays(todayDate, -joinDaysAgo);
+  const frequency = Math.max(1, Math.round(rand() * rand() * 14));
+  const lastOrderDaysAgo = Math.min(joinDaysAgo, Math.round(rand()*rand()*180));
+  const monetaryAvg = 900 + rand()*2600;
+  const monetary = Math.round(frequency * monetaryAvg);
+  MEMBERS.push({
+    id: 'M'+(1000+i),
+    name: pick(FIRST) + pick(['小明','怡君','家豪','詩涵','冠宇','雨柔','政翰','思妤','俊傑','佳蓉']),
+    email: 'member'+(1000+i)+'@mail.com',
+    joinDate: dateStr(joinDate),
+    frequency, monetary,
+    lastOrderDaysAgo,
+  });
+}
+// quantile-based R / F / M scoring (1-5)
+function scoreQuantile(values, value, invert){
+  const sorted = [...values].sort((a,b)=>a-b);
+  const idx = sorted.findIndex(v => v >= value);
+  const pct = idx === -1 ? 1 : idx / sorted.length;
+  let s = Math.ceil(pct * 5) || 1;
+  if (invert) s = 6 - s;
+  return Math.min(5, Math.max(1, s));
+}
+const rVals = MEMBERS.map(m=>m.lastOrderDaysAgo);
+const fVals = MEMBERS.map(m=>m.frequency);
+const mVals = MEMBERS.map(m=>m.monetary);
+MEMBERS.forEach(m => {
+  m.rScore = scoreQuantile(rVals, m.lastOrderDaysAgo, true); // fewer days ago = higher score
+  m.fScore = scoreQuantile(fVals, m.frequency, false);
+  m.mScore = scoreQuantile(mVals, m.monetary, false);
+  const avg = (m.rScore + m.fScore + m.mScore) / 3;
+  if (m.rScore >= 4 && m.fScore >= 4 && m.mScore >= 4) m.segment = '冠軍會員';
+  else if (m.fScore >= 4 && m.rScore >= 3) m.segment = '忠誠會員';
+  else if (m.rScore >= 4 && m.fScore <= 2) m.segment = '新會員';
+  else if (m.rScore <= 2 && m.fScore >= 3) m.segment = '流失風險';
+  else if (m.rScore <= 2 && m.fScore <= 2) m.segment = '沉睡會員';
+  else m.segment = '潛力會員';
+  // purchase history mock
+  m.history = [];
+  const hCount = Math.min(m.frequency, 6);
+  for (let j = 0; j < hCount; j++){
+    const dd = addDays(todayDate, -(m.lastOrderDaysAgo + j*randInt(20,60)));
+    m.history.push({ date: dateStr(dd), product: pick(PRODUCT_LIST).name, amount: pick(PRODUCT_LIST).price });
+  }
+  m.returns = rand() < 0.16 ? randInt(1,2) : 0;
+});
+const SEGMENT_META = {
+  '冠軍會員': { desc:'R/F/M 皆高，最有價值', color:'ink' },
+  '忠誠會員': { desc:'高頻回購', color:'ink' },
+  '潛力會員': { desc:'中等表現，可培養', color:'steel' },
+  '新會員':   { desc:'近期加入，首購未久', color:'steel' },
+  '流失風險': { desc:'許久未回購', color:'rust' },
+  '沉睡會員': { desc:'長期無互動', color:'rust' },
+};
+
+/* ============================================================
+   6. TRAFFIC SOURCES + FUNNEL + CART ABANDONMENT
+============================================================ */
+const TRAFFIC_SOURCES = [
+  { name:'Facebook Ads', sessions: 18400, convRate: 2.1 },
+  { name:'Google Ads', sessions: 12600, convRate: 2.8 },
+  { name:'Instagram', sessions: 9800, convRate: 1.7 },
+  { name:'SEO 自然搜尋', sessions: 15200, convRate: 3.4 },
+  { name:'直接流量', sessions: 8100, convRate: 4.1 },
+  { name:'聯盟 / KOL 推薦', sessions: 5300, convRate: 2.4 },
+];
+const FUNNEL = (() => {
+  const view = 100;
+  const cart = 100 * 0.34;
+  const checkout = cart * 0.52;
+  const purchase = checkout * 0.68;
+  return [
+    { name:'商品瀏覽', pct: view, count: 69400 },
+    { name:'加入購物車', pct: cart, count: Math.round(69400*0.34) },
+    { name:'進入結帳', pct: checkout, count: Math.round(69400*0.34*0.52) },
+    { name:'完成購買', pct: purchase, count: Math.round(69400*0.34*0.52*0.68) },
+  ];
+})();
+const CART_ABANDON = [];
+for (let i = 0; i < 12; i++){
+  const p = pick(PRODUCT_LIST);
+  CART_ABANDON.push({
+    email: 'guest'+randInt(100,999)+'@mail.com',
+    product: p.name, qty: randInt(1,2), price: p.price,
+    ago: randInt(1,48),
+  });
+}
+
+/* ============================================================
+   7. MARKETING — coupons / utm / kol
+============================================================ */
+const COUPONS = [
+  { code:'WELCOME10', type:'9折', uses:214, revenue:312000, conv:6.2 },
+  { code:'OSCVIP', type:'滿3000折300', uses:98, revenue:287500, conv:8.9 },
+  { code:'DROP0827', type:'85折', uses:156, revenue:198400, conv:5.1 },
+  { code:'FREESHIP', type:'免運', uses:341, revenue:401200, conv:9.7 },
+  { code:'BIRTHDAY', type:'85折', uses:47, revenue:66200, conv:11.3 },
+  { code:'KOL-MIA', type:'9折', uses:88, revenue:121000, conv:4.4 },
+];
+const UTM = [
+  { source:'facebook', medium:'cpc', campaign:'0827_dropteaser', sessions:6200, conv:132, revenue:224800, spend:38000 },
+  { source:'google', medium:'cpc', campaign:'brand_search', sessions:4100, conv:168, revenue:298600, spend:26500 },
+  { source:'instagram', medium:'social', campaign:'reels_wave_logo', sessions:3300, conv:54, revenue:87400, spend:14200 },
+  { source:'newsletter', medium:'email', campaign:'aug_restock', sessions:2100, conv:96, revenue:151200, spend:0 },
+  { source:'kol_mia', medium:'affiliate', campaign:'mia_unboxing', sessions:1800, conv:61, revenue:98700, spend:9000 },
+  { source:'google', medium:'display', campaign:'retarget_cart', sessions:2600, conv:71, revenue:112300, spend:15800 },
+];
+const KOL = [
+  { name:'@mia.wears', clicks:5400, orders:61, rate:12, commission:11844 },
+  { name:'@streetlineup', clicks:3900, orders:38, rate:10, commission:7220 },
+  { name:'@kh.dailyfit', clicks:2100, orders:19, rate:12, commission:4104 },
+  { name:'@wave.tw', clicks:1600, orders:14, rate:10, commission:2660 },
+  { name:'@osc.fanpage', clicks:980, orders:9, rate:8, commission:1310 },
+];
+
+/* ============================================================
+   8. INVENTORY / LOGISTICS
+============================================================ */
+const LOGISTICS = [
+  { name:'已送達', value: 412 },
+  { name:'出貨中', value: 96 },
+  { name:'超商未取（逾期）', value: 23 },
+  { name:'退貨處理中', value: 11 },
+];
+const UNCLAIMED_WEEKS = [];
+for (let i = 7; i >= 0; i--){
+  UNCLAIMED_WEEKS.push({ label:'W-'+i, rate: +(6 + rand()*5).toFixed(1) });
+}
+
+/* ============================================================
+   9. SYSTEM / AUDIT
+============================================================ */
+const SYS_DAILY = [];
+for (let i = 29; i >= 0; i--){
+  const d = addDays(todayDate, -i);
+  SYS_DAILY.push({
+    date: dateStr(d),
+    load: Math.round(680 + rand()*420 + (rand()<0.06 ? 900 : 0)),
+    error: +(0.15 + rand()*0.6 + (rand()<0.05 ? 1.4 : 0)).toFixed(2),
+  });
+}
+const AUDIT_ACTIONS = ['修改商品價格','編輯庫存數量','發送優惠券','退款訂單','匯出會員名單','新增管理員帳號','修改首頁輪播圖','關閉商品上架','修改物流狀態','登入後台'];
+const AUDIT_USERS = [
+  { name:'Studio Manager', role:'admin' },
+  { name:'客服 - 小陳', role:'staff' },
+  { name:'倉管 - 阿賢', role:'staff' },
+  { name:'行銷 - Mia', role:'marketing' },
+  { name:'行銷 - Kevin', role:'marketing' },
+];
+const AUDIT_LOG = [];
+for (let i = 0; i < 40; i++){
+  const u = pick(AUDIT_USERS);
+  const d = addDays(todayDate, -randInt(0,20));
+  d.setHours(randInt(8,23), randInt(0,59));
+  AUDIT_LOG.push({
+    user: u.name, role: u.role,
+    action: pick(AUDIT_ACTIONS),
+    target: pick(['#OSC-48'+randInt(10,99), pick(PRODUCT_LIST).name, 'M'+randInt(1000,1150), '首頁 Banner']),
+    time: d.toISOString().slice(0,16).replace('T',' '),
+    ip: `192.168.${randInt(0,4)}.${randInt(2,250)}`,
+  });
+}
+AUDIT_LOG.sort((a,b)=> b.time.localeCompare(a.time));
+
+/* ============================================================
+   CHART.JS DEFAULTS
+============================================================ */
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 10.5;
+Chart.defaults.color = '#6b7075';
+Chart.defaults.borderColor = 'rgba(10,10,10,0.08)';
+const INK = '#E8B23D', BLACK = '#0a0a0a', STEEL = '#9aa0a6', RUST = '#C0574A';
+const gridOpt = { grid:{ color:'rgba(10,10,10,0.07)', drawTicks:false }, ticks:{ padding:6 } };
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('is-active'));
+    document.getElementById('view-'+btn.dataset.view).classList.add('is-active');
+    window.scrollTo({top:0, behavior:'auto'});
+  });
+});
+function goTo(view){ document.querySelector(`.nav-item[data-view="${view}"]`).click(); }
+
+/* ============================================================
+   OVERVIEW
+============================================================ */
+function kpiCard(label, value, delta, note){
+  const deltaHtml = delta !== undefined ? `<span class="kpi-delta ${delta>=0?'up':'down'}">${delta>=0?'▲':'▼'} ${Math.abs(delta).toFixed(1)}%</span>` : '';
+  return `<div class="kpi-card"><span class="kpi-label">${label}</span><span class="kpi-value">${value}</span>${deltaHtml}${note?`<span class="kpi-note">${note}</span>`:''}</div>`;
+}
+
+function renderOverview(){
+  const d30 = sliceDays(30), prev30 = DAILY.slice(DAILY.length-60, DAILY.length-30);
+  const rev30 = d30.reduce((s,d)=>s+d.revenue,0);
+  const revPrev = prev30.reduce((s,d)=>s+d.revenue,0);
+  const orders30 = d30.reduce((s,d)=>s+d.orders,0);
+  const aov = rev30/orders30;
+  const lowStock = PRODUCTS.filter(p=>p.stock < p.safety).length;
+  const atRisk = MEMBERS.filter(m=>m.segment==='流失風險'||m.segment==='沉睡會員').length;
+
+  document.getElementById('ov-kpis').innerHTML = [
+    kpiCard('近30天營業額', fmtMoney(rev30), (rev30-revPrev)/revPrev*100, 'vs 前30天'),
+    kpiCard('訂單數', fmtNum(orders30), undefined, '近30天'),
+    kpiCard('平均客單價', fmtMoney(aov)),
+    kpiCard('會員總數', fmtNum(MEMBERS.length), undefined, atRisk+' 位流失風險'),
+    kpiCard('低庫存警示', fmtNum(lowStock), undefined, '低於安全庫存量'),
+    kpiCard('近30天錯誤率', fmtPct(SYS_DAILY.slice(-30).reduce((s,d)=>s+d.error,0)/30)),
+  ].join('');
+
+  const alerts = [];
+  PRODUCTS.filter(p=>p.stock<p.safety).slice(0,3).forEach(p=>alerts.push({dot:'', text:`<b>${p.name}</b> 庫存僅剩 ${p.stock} 件（安全庫存 ${p.safety}）`, meta:'INVENTORY'}));
+  alerts.push({dot:'', text:`超商未取件率本週為 <b>${UNCLAIMED_WEEKS[UNCLAIMED_WEEKS.length-1].rate}%</b>`, meta:'LOGISTICS'});
+  alerts.push({dot:'ink', text:`本月新增 <b>${MEMBERS.filter(m=>m.frequency<=1 && m.lastOrderDaysAgo<30).length}</b> 位新會員`, meta:'CRM'});
+  alerts.push({dot:'', text:`<b>${atRisk}</b> 位會員已列為流失風險 / 沉睡`, meta:'CRM'});
+  const errSpike = SYS_DAILY.slice(-3).some(d=>d.error>1.2);
+  if (errSpike) alerts.push({dot:'', text:`近3日偵測到錯誤率異常升高`, meta:'SYSTEM'});
+  document.getElementById('ov-alerts').innerHTML = alerts.map(a=>`<div class="alert-row"><span class="alert-dot ${a.dot}"></span><span class="alert-text">${a.text}</span><span class="alert-meta">${a.meta}</span></div>`).join('');
+
+  const tiles = [
+    { n:'01', v:'sales', t:'訂單與銷售', d:'營收概況、商品銷售榜、金流成功率', m: fmtMoney(rev30)+' /30d' },
+    { n:'02', v:'crm', t:'客戶與會員', d:'RFM 分群、回購率、顧客履歷', m: MEMBERS.length+' 位會員' },
+    { n:'03', v:'traffic', t:'流量與行為', d:'流量來源、轉化漏斗、棄單分析', m: fmtPct(FUNNEL[3].pct/FUNNEL[0].pct*100)+' 轉化率' },
+    { n:'04', v:'marketing', t:'行銷與廣告', d:'折扣碼、UTM 追蹤、KOL 分潤', m: COUPONS.length+' 組進行中' },
+    { n:'05', v:'inventory', t:'庫存與供應鏈', d:'低庫存警示、物流與取件狀態', m: lowStock+' 項低庫存' },
+    { n:'06', v:'system', t:'系統效能與稽核', d:'載入速度、錯誤率、操作日誌', m: AUDIT_LOG.length+' 筆近期紀錄' },
+  ];
+  document.getElementById('ov-tiles').innerHTML = tiles.map(t=>`
+    <button class="tile" data-goto="${t.v}">
+      <span class="tile-num">${t.n}</span>
+      <span class="tile-title">${t.t}</span>
+      <span class="tile-desc">${t.d}</span>
+      <span class="tile-metric">${t.m}</span>
+    </button>`).join('');
+  document.querySelectorAll('.tile').forEach(t=>t.addEventListener('click', ()=>goTo(t.dataset.goto)));
+
+  new Chart(document.getElementById('chart-ov-revenue'), {
+    type:'line',
+    data:{ labels: DAILY.map(d=>d.date.slice(5)), datasets:[{
+      data: DAILY.map(d=>d.revenue), borderColor: BLACK, backgroundColor:'rgba(232,178,61,0.15)',
+      fill:true, tension:0.3, pointRadius:0, borderWidth:1.6,
+    }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>fmtMoney(c.parsed.y)}}},
+      scales:{ x:{...gridOpt, ticks:{...gridOpt.ticks, maxTicksLimit:9}}, y:{...gridOpt, ticks:{...gridOpt.ticks, callback:v=>(v/1000)+'k'}} } }
+  });
+
+  document.getElementById('ov-clock').textContent = 'AS OF ' + dateStr(todayDate) + ' 09:00';
+}
+
+/* ============================================================
+   SALES VIEW
+============================================================ */
+let salesChart, paymentChart, salesRangeDays = 30, salesSort = 'revenue', salesCat = 'all';
+
+function renderSalesKpis(){
+  const d = sliceDays(salesRangeDays);
+  const dPrev = DAILY.slice(Math.max(0,DAILY.length-salesRangeDays*2), DAILY.length-salesRangeDays);
+  const rev = d.reduce((s,x)=>s+x.revenue,0), revPrev = dPrev.reduce((s,x)=>s+x.revenue,0)||rev;
+  const orders = d.reduce((s,x)=>s+x.orders,0);
+  const refunds = d.reduce((s,x)=>s+x.refunds,0), cancels = d.reduce((s,x)=>s+x.cancellations,0);
+  document.getElementById('sales-kpis').innerHTML = [
+    kpiCard('總營業額', fmtMoney(rev), (rev-revPrev)/revPrev*100, `近${salesRangeDays}天`),
+    kpiCard('總訂單數', fmtNum(orders)),
+    kpiCard('平均客單價 AOV', fmtMoney(rev/orders)),
+    kpiCard('退款訂單', fmtNum(refunds), undefined, fmtPct(refunds/orders*100)+' 佔比'),
+    kpiCard('取消訂單', fmtNum(cancels), undefined, fmtPct(cancels/orders*100)+' 佔比'),
+  ].join('');
+}
+
+function renderSalesCharts(){
+  const d = sliceDays(salesRangeDays);
+  const labels = d.map(x=>x.date.slice(5));
+  if (salesChart) salesChart.destroy();
+  salesChart = new Chart(document.getElementById('chart-sales-trend'), {
+    data:{ labels, datasets:[
+      { type:'bar', label:'訂單數', data:d.map(x=>x.orders), backgroundColor:'rgba(10,10,10,0.12)', yAxisID:'y1', borderRadius:1, barPercentage:0.55 },
+      { type:'line', label:'營業額', data:d.map(x=>x.revenue), borderColor:BLACK, backgroundColor:'rgba(232,178,61,0.18)', fill:true, tension:0.3, pointRadius:0, borderWidth:1.6, yAxisID:'y' },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'top', align:'end', labels:{boxWidth:10, boxHeight:10} } },
+      scales:{ x:{...gridOpt, ticks:{...gridOpt.ticks, maxTicksLimit:10}}, y:{...gridOpt, position:'left', ticks:{...gridOpt.ticks, callback:v=>(v/1000)+'k'}}, y1:{position:'right', grid:{display:false}, ticks:{...gridOpt.ticks}} }
+    }
+  });
+  if (paymentChart) paymentChart.destroy();
+  paymentChart = new Chart(document.getElementById('chart-sales-payment'), {
+    type:'doughnut',
+    data:{ labels: PAYMENTS.map(p=>p.name), datasets:[{ data: PAYMENTS.map(p=>p.share), backgroundColor:[BLACK,INK,STEEL,'#4b4f53'], borderWidth:2, borderColor:'#EDE9E1' }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, cutout:'62%' }
+  });
+  document.getElementById('payment-legend').innerHTML = PAYMENTS.map(p=>`
+    <div style="display:flex; justify-content:space-between; font-family:var(--mono); font-size:0.72rem; padding:5px 0; border-bottom:1px dashed var(--line-light);">
+      <span>${p.name} · ${p.share}%</span><span style="color:${p.success<90?'var(--rust)':'var(--steel-dim)'}">成功率 ${p.success}%</span>
+    </div>`).join('');
+}
+
+function renderProductTable(){
+  let rows = PRODUCTS.filter(p => salesCat==='all' || p.cat===salesCat);
+  rows.sort((a,b)=> b[salesSort]-a[salesSort]);
+  const tbl = document.getElementById('tbl-products');
+  tbl.querySelector('thead').innerHTML = `<tr><th>商品</th><th>分類</th><th>銷量</th><th>銷售額</th><th>毛利率</th><th>庫存週轉</th><th>庫存</th></tr>`;
+  tbl.querySelector('tbody').innerHTML = rows.map(p=>`
+    <tr>
+      <td class="wrap">${p.name}</td>
+      <td><span class="pill pill-info">${p.cat}</span></td>
+      <td>${fmtNum(p.units)}</td>
+      <td>${fmtMoney(p.revenue)}</td>
+      <td>${fmtPct(p.margin)}</td>
+      <td>${p.turnover}x</td>
+      <td>${p.stock < p.safety ? `<span class="pill pill-bad">${p.stock}</span>` : p.stock}</td>
+    </tr>`).join('');
+}
+
+function renderOrdersTable(){
+  const q = document.getElementById('orders-search').value.trim().toLowerCase();
+  const status = document.getElementById('orders-status-filter').value;
+  let rows = ORDERS.filter(o => (status==='all' || o.status.key===status) &&
+    (q==='' || o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q)));
+  document.getElementById('orders-count-tag').textContent = rows.length + ' 筆';
+  const tbl = document.getElementById('tbl-orders');
+  tbl.querySelector('thead').innerHTML = `<tr><th>訂單編號</th><th>顧客</th><th>日期</th><th>件數</th><th>金額</th><th>金流</th><th>狀態</th></tr>`;
+  tbl.querySelector('tbody').innerHTML = rows.slice(0,30).map(o=>`
+    <tr>
+      <td>${o.id}</td><td class="wrap">${o.customer}</td><td>${o.date}</td><td>${o.items}</td>
+      <td>${fmtMoney(o.amount)}</td><td class="wrap">${o.payment}</td>
+      <td><span class="pill ${o.status.cls}">${o.status.label}</span></td>
+    </tr>`).join('') || `<tr><td colspan="7" class="empty-hint">沒有符合條件的訂單</td></tr>`;
+}
+
+function renderSales(){ renderSalesKpis(); renderSalesCharts(); renderProductTable(); renderOrdersTable(); }
+
+document.querySelectorAll('#sales-range button').forEach(b=>b.addEventListener('click', ()=>{
+  document.querySelectorAll('#sales-range button').forEach(x=>x.classList.remove('is-active'));
+  b.classList.add('is-active'); salesRangeDays = Number(b.dataset.range); renderSalesKpis(); renderSalesCharts();
+}));
+document.querySelectorAll('#sales-sort button').forEach(b=>b.addEventListener('click', ()=>{
+  document.querySelectorAll('#sales-sort button').forEach(x=>x.classList.remove('is-active'));
+  b.classList.add('is-active'); salesSort = b.dataset.sort;
+  document.getElementById('sales-rank-tag').textContent = 'by '+salesSort;
+  renderProductTable();
+}));
+document.getElementById('sales-cat-filter').addEventListener('change', e=>{ salesCat = e.target.value; renderProductTable(); });
+document.getElementById('orders-search').addEventListener('input', renderOrdersTable);
+document.getElementById('orders-status-filter').addEventListener('change', renderOrdersTable);
+
+/* ============================================================
+   CRM VIEW
+============================================================ */
+let rfmActive = null;
+
+function renderCrmKpis(){
+  const newMembers30 = MEMBERS.filter(m=>m.lastOrderDaysAgo<30 && m.frequency<=1).length;
+  const repeat = MEMBERS.filter(m=>m.frequency>1).length;
+  const dormant = MEMBERS.filter(m=>m.segment==='沉睡會員').length;
+  const totalSpend = MEMBERS.reduce((s,m)=>s+m.monetary,0);
+  const avgLtv = totalSpend/MEMBERS.length;
+  document.getElementById('crm-kpis').innerHTML = [
+    kpiCard('會員總數', fmtNum(MEMBERS.length)),
+    kpiCard('近30天新會員', fmtNum(newMembers30)),
+    kpiCard('回購率', fmtPct(repeat/MEMBERS.length*100)),
+    kpiCard('沉睡會員', fmtNum(dormant), undefined, '90天以上未互動'),
+    kpiCard('平均顧客終身價值', fmtMoney(avgLtv)),
+  ].join('');
+}
+
+function renderCrmCharts(){
+  const months = ['3月','4月','5月','6月','7月','8月'];
+  const growthData = months.map((_,i)=> randInt(14,38) + i*3);
+  new Chart(document.getElementById('chart-crm-growth'), {
+    type:'bar',
+    data:{ labels: months, datasets:[{ data: growthData, backgroundColor: BLACK, borderRadius:2, barPercentage:0.55 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:gridOpt, y:gridOpt} }
+  });
+  const repeat = MEMBERS.filter(m=>m.frequency>1).length;
+  new Chart(document.getElementById('chart-crm-repeat'), {
+    type:'doughnut',
+    data:{ labels:['回購顧客','首購顧客'], datasets:[{ data:[repeat, MEMBERS.length-repeat], backgroundColor:[INK, 'rgba(10,10,10,0.14)'], borderWidth:2, borderColor:'#EDE9E1' }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10,boxHeight:10}}}, cutout:'62%' }
+  });
+}
+
+function renderRfmGrid(){
+  const counts = {};
+  MEMBERS.forEach(m => counts[m.segment] = (counts[m.segment]||0)+1);
+  document.getElementById('rfm-grid').innerHTML = Object.keys(SEGMENT_META).map(seg=>`
+    <button class="rfm-seg ${rfmActive===seg?'is-active':''}" data-seg="${seg}">
+      <div class="rfm-name">${seg}</div>
+      <div class="rfm-count">${counts[seg]||0}</div>
+      <div class="rfm-desc">${SEGMENT_META[seg].desc}</div>
+    </button>`).join('');
+  document.querySelectorAll('.rfm-seg').forEach(el=>el.addEventListener('click', ()=>{
+    rfmActive = rfmActive===el.dataset.seg ? null : el.dataset.seg;
+    renderRfmGrid(); renderMembersTable();
+  }));
+}
+
+function renderMembersTable(){
+  const q = document.getElementById('members-search').value.trim().toLowerCase();
+  let rows = MEMBERS.filter(m => (!rfmActive || m.segment===rfmActive) &&
+    (q==='' || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)));
+  rows.sort((a,b)=> b.monetary - a.monetary);
+  const filterField = document.getElementById('rfm-active-filter');
+  if (rfmActive){ filterField.style.display='flex'; document.getElementById('rfm-active-label').textContent = rfmActive; filterField.onclick = ()=>{ rfmActive=null; renderRfmGrid(); renderMembersTable(); }; }
+  else filterField.style.display='none';
+
+  const tbl = document.getElementById('tbl-members');
+  tbl.querySelector('thead').innerHTML = `<tr><th>會員</th><th>加入日期</th><th>購買次數</th><th>累積消費</th><th>最近購買</th><th>RFM分群</th></tr>`;
+  tbl.querySelector('tbody').innerHTML = rows.slice(0,40).map(m=>`
+    <tr class="clickable" data-id="${m.id}">
+      <td class="wrap">${m.name}</td><td>${m.joinDate}</td><td>${m.frequency}</td>
+      <td>${fmtMoney(m.monetary)}</td><td>${m.lastOrderDaysAgo} 天前</td>
+      <td><span class="pill ${SEGMENT_META[m.segment].color==='ink'?'pill-ok':SEGMENT_META[m.segment].color==='rust'?'pill-bad':'pill-info'}">${m.segment}</span></td>
+    </tr>`).join('') || `<tr><td colspan="6" class="empty-hint">沒有符合條件的會員</td></tr>`;
+  tbl.querySelectorAll('tr.clickable').forEach(tr=>tr.addEventListener('click', ()=>openDrawer(tr.dataset.id)));
+}
+
+function renderCrm(){ renderCrmKpis(); renderCrmCharts(); renderRfmGrid(); renderMembersTable(); }
+document.getElementById('members-search').addEventListener('input', renderMembersTable);
+
+/* ---- member drawer ---- */
+function openDrawer(id){
+  const m = MEMBERS.find(x=>x.id===id); if(!m) return;
+  document.getElementById('drawer-name').textContent = m.name;
+  document.getElementById('drawer-email').textContent = m.email + ' · ' + m.id;
+  const segPill = document.getElementById('drawer-seg');
+  segPill.textContent = m.segment;
+  segPill.className = 'pill drawer-seg-pill ' + (SEGMENT_META[m.segment].color==='ink'?'pill-ok':SEGMENT_META[m.segment].color==='rust'?'pill-bad':'pill-info');
+  document.getElementById('drawer-kpis').innerHTML = [
+    kpiCard('累積消費', fmtMoney(m.monetary)),
+    kpiCard('平均客單', fmtMoney(m.monetary/m.frequency)),
+    kpiCard('購買次數', m.frequency),
+    kpiCard('退換貨次數', m.returns),
+  ].join('');
+  document.getElementById('drawer-hist').innerHTML = m.history.length ? m.history.map(h=>`
+    <div class="hist-item"><span>${h.product}</span><span class="d">${h.date} · ${fmtMoney(h.amount)}</span></div>`).join('')
+    : `<div class="empty-hint">尚無購買紀錄</div>`;
+  document.getElementById('overlay').classList.add('is-open');
+  document.getElementById('drawer').classList.add('is-open');
+}
+function closeDrawer(){ document.getElementById('overlay').classList.remove('is-open'); document.getElementById('drawer').classList.remove('is-open'); }
+document.getElementById('overlay').addEventListener('click', closeDrawer);
+document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+
+/* ============================================================
+   TRAFFIC VIEW
+============================================================ */
+function renderTraffic(){
+  const totalSessions = TRAFFIC_SOURCES.reduce((s,t)=>s+t.sessions,0);
+  const blendedConv = TRAFFIC_SOURCES.reduce((s,t)=>s+t.sessions*t.convRate,0)/totalSessions;
+  document.getElementById('traffic-kpis').innerHTML = [
+    kpiCard('總工作階段', fmtNum(totalSessions), undefined, '近30天'),
+    kpiCard('平均轉化率', fmtPct(blendedConv)),
+    kpiCard('轉化漏斗完成率', fmtPct(FUNNEL[3].pct/FUNNEL[0].pct*100), undefined, '瀏覽→購買'),
+    kpiCard('購物車棄單數', fmtNum(CART_ABANDON.length), undefined, '近48小時'),
+  ].join('');
+
+  new Chart(document.getElementById('chart-traffic-source'), {
+    type:'bar',
+    data:{ labels: TRAFFIC_SOURCES.map(t=>t.name), datasets:[{ data: TRAFFIC_SOURCES.map(t=>t.sessions), backgroundColor: BLACK, borderRadius:2, barPercentage:0.6 }]},
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:gridOpt, y:{grid:{display:false}}} }
+  });
+
+  document.getElementById('funnel').innerHTML = FUNNEL.map((f,i)=>{
+    const drop = i===0 ? '' : `-${(FUNNEL[i-1].pct-f.pct).toFixed(1)}%`;
+    return `<div class="funnel-step">
+      <div class="funnel-name">${f.name}</div>
+      <div class="funnel-track"><div class="funnel-fill" style="width:${f.pct}%"><span>${f.pct.toFixed(1)}%</span></div></div>
+      <div class="funnel-count">${fmtNum(f.count)}</div>
+      <div class="funnel-drop">${drop}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('cart-abandon-tag').textContent = CART_ABANDON.length + ' 筆棄單';
+  const tbl = document.getElementById('tbl-cart');
+  tbl.querySelector('thead').innerHTML = `<tr><th>顧客</th><th>商品</th><th>數量</th><th>金額</th><th>加入購物車</th></tr>`;
+  tbl.querySelector('tbody').innerHTML = CART_ABANDON.map(c=>`
+    <tr><td class="wrap">${c.email}</td><td class="wrap">${c.product}</td><td>${c.qty}</td><td>${fmtMoney(c.price*c.qty)}</td><td>${c.ago} 小時前</td></tr>`).join('');
+}
+
+/* ============================================================
+   MARKETING VIEW
+============================================================ */
+function renderMarketing(){
+  const couponRevenue = COUPONS.reduce((s,c)=>s+c.revenue,0);
+  const totalSpend = UTM.reduce((s,u)=>s+u.spend,0);
+  const totalUtmRevenue = UTM.reduce((s,u)=>s+u.revenue,0);
+  const roas = totalSpend ? totalUtmRevenue/totalSpend : 0;
+  const kolCommission = KOL.reduce((s,k)=>s+k.commission,0);
+  document.getElementById('mkt-kpis').innerHTML = [
+    kpiCard('折扣碼帶動營收', fmtMoney(couponRevenue)),
+    kpiCard('整體 ROAS', roas.toFixed(2)+'x', undefined, '含廣告 + KOL 連結'),
+    kpiCard('廣告花費', fmtMoney(totalSpend)),
+    kpiCard('KOL 分潤支出', fmtMoney(kolCommission)),
+  ].join('');
+
+  const tc = document.getElementById('tbl-coupons');
+  tc.querySelector('thead').innerHTML = `<tr><th>折扣碼</th><th>優惠內容</th><th>使用次數</th><th>帶動營收</th><th>轉化率</th></tr>`;
+  tc.querySelector('tbody').innerHTML = COUPONS.sort((a,b)=>b.revenue-a.revenue).map(c=>`
+    <tr><td>${c.code}</td><td class="wrap">${c.type}</td><td>${fmtNum(c.uses)}</td><td>${fmtMoney(c.revenue)}</td><td>${fmtPct(c.conv)}</td></tr>`).join('');
+
+  const tu = document.getElementById('tbl-utm');
+  tu.querySelector('thead').innerHTML = `<tr><th>Source</th><th>Medium</th><th>Campaign</th><th>Sessions</th><th>轉化</th><th>營收</th><th>ROAS</th></tr>`;
+  tu.querySelector('tbody').innerHTML = UTM.sort((a,b)=>b.revenue-a.revenue).map(u=>{
+    const r = u.spend ? (u.revenue/u.spend) : null;
+    return `<tr><td>${u.source}</td><td>${u.medium}</td><td class="wrap">${u.campaign}</td><td>${fmtNum(u.sessions)}</td><td>${fmtNum(u.conv)}</td><td>${fmtMoney(u.revenue)}</td><td>${r?r.toFixed(2)+'x':'—'}</td></tr>`;
+  }).join('');
+
+  const tk = document.getElementById('tbl-kol');
+  tk.querySelector('thead').innerHTML = `<tr><th>合作對象</th><th>點擊數</th><th>成交訂單</th><th>分潤比例</th><th>應付分潤</th></tr>`;
+  tk.querySelector('tbody').innerHTML = KOL.sort((a,b)=>b.commission-a.commission).map(k=>`
+    <tr><td>${k.name}</td><td>${fmtNum(k.clicks)}</td><td>${fmtNum(k.orders)}</td><td>${k.rate}%</td><td>${fmtMoney(k.commission)}</td></tr>`).join('');
+}
+
+/* ============================================================
+   INVENTORY VIEW
+============================================================ */
+function renderInventoryTable(){
+  const onlyLow = document.getElementById('low-stock-only').checked;
+  let rows = PRODUCTS.filter(p => !onlyLow || p.stock < p.safety);
+  rows = [...rows].sort((a,b)=> (a.stock-a.safety) - (b.stock-b.safety));
+  const tbl = document.getElementById('tbl-inventory');
+  tbl.querySelector('thead').innerHTML = `<tr><th>商品</th><th>分類</th><th>目前庫存</th><th>安全庫存</th><th>庫存水位</th><th>週轉率</th><th>狀態</th></tr>`;
+  tbl.querySelector('tbody').innerHTML = rows.map(p=>{
+    const ratio = Math.min(100, Math.round(p.stock/(p.safety*2.5)*100));
+    const low = p.stock < p.safety;
+    return `<tr>
+      <td class="wrap">${p.name}</td><td><span class="pill pill-info">${p.cat}</span></td>
+      <td>${p.stock}</td><td>${p.safety}</td>
+      <td><span class="bar-mini ${low?'low':''}"><span style="width:${ratio}%"></span></span></td>
+      <td>${p.turnover}x</td>
+      <td>${low? '<span class="pill pill-bad">需補貨</span>' : '<span class="pill pill-ok">正常</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderInventory(){
+  const lowStock = PRODUCTS.filter(p=>p.stock<p.safety).length;
+  const unclaimed = LOGISTICS[2].value;
+  const avgTurnover = PRODUCTS.reduce((s,p)=>s+p.turnover,0)/PRODUCTS.length;
+  document.getElementById('inv-kpis').innerHTML = [
+    kpiCard('低庫存警示品項', fmtNum(lowStock)),
+    kpiCard('出貨中訂單', fmtNum(LOGISTICS[1].value)),
+    kpiCard('超商未取件', fmtNum(unclaimed), undefined, fmtPct(unclaimed/LOGISTICS.reduce((s,l)=>s+l.value,0)*100)+' 佔比'),
+    kpiCard('平均庫存週轉率', avgTurnover.toFixed(2)+'x'),
+  ].join('');
+  document.getElementById('low-stock-tag').textContent = lowStock + ' 項低於安全庫存';
+
+  new Chart(document.getElementById('chart-inv-logistics'), {
+    type:'doughnut',
+    data:{ labels: LOGISTICS.map(l=>l.name), datasets:[{ data: LOGISTICS.map(l=>l.value), backgroundColor:[INK, BLACK, RUST, STEEL], borderWidth:2, borderColor:'#EDE9E1' }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{boxWidth:10,boxHeight:10, font:{size:10}}}}, cutout:'60%' }
+  });
+  new Chart(document.getElementById('chart-inv-unclaimed'), {
+    type:'line',
+    data:{ labels: UNCLAIMED_WEEKS.map(w=>w.label), datasets:[{ data: UNCLAIMED_WEEKS.map(w=>w.rate), borderColor: RUST, backgroundColor:'rgba(192,87,74,0.12)', fill:true, tension:0.3, pointRadius:3, pointBackgroundColor:RUST, borderWidth:1.6 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.parsed.y+'%'}}}, scales:{x:gridOpt, y:{...gridOpt, ticks:{...gridOpt.ticks, callback:v=>v+'%'}}} }
+  });
+
+  renderInventoryTable();
+}
+document.getElementById('low-stock-only').addEventListener('change', renderInventoryTable);
+
+/* ============================================================
+   SYSTEM VIEW
+============================================================ */
+function renderSystem(){
+  const avgLoad = SYS_DAILY.reduce((s,d)=>s+d.load,0)/SYS_DAILY.length;
+  const avgError = SYS_DAILY.reduce((s,d)=>s+d.error,0)/SYS_DAILY.length;
+  const incidents = SYS_DAILY.filter(d=>d.error>1.2).length;
+  document.getElementById('sys-kpis').innerHTML = [
+    kpiCard('平均載入時間', Math.round(avgLoad)+' ms'),
+    kpiCard('平均錯誤率', fmtPct(avgError)),
+    kpiCard('異常事件（近30天）', fmtNum(incidents)),
+    kpiCard('操作日誌筆數', fmtNum(AUDIT_LOG.length)),
+  ].join('');
+
+  new Chart(document.getElementById('chart-sys-load'), {
+    type:'line',
+    data:{ labels: SYS_DAILY.map(d=>d.date.slice(5)), datasets:[{ data: SYS_DAILY.map(d=>d.load), borderColor: BLACK, backgroundColor:'rgba(10,10,10,0.08)', fill:true, tension:0.25, pointRadius:0, borderWidth:1.6 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.parsed.y+' ms'}}}, scales:{x:{...gridOpt, ticks:{...gridOpt.ticks, maxTicksLimit:8}}, y:gridOpt} }
+  });
+  new Chart(document.getElementById('chart-sys-error'), {
+    type:'bar',
+    data:{ labels: SYS_DAILY.map(d=>d.date.slice(5)), datasets:[{ data: SYS_DAILY.map(d=>d.error), backgroundColor: SYS_DAILY.map(d=>d.error>1.2?RUST:'rgba(10,10,10,0.16)'), borderRadius:1, barPercentage:0.6 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>c.parsed.y+'%'}}}, scales:{x:{...gridOpt, ticks:{...gridOpt.ticks, maxTicksLimit:8}}, y:{...gridOpt, ticks:{...gridOpt.ticks, callback:v=>v+'%'}}} }
+  });
+
+  renderAuditTable();
+}
+
+function renderAuditTable(){
+  const q = document.getElementById('audit-search').value.trim().toLowerCase();
+  const role = document.getElementById('audit-role-filter').value;
+  let rows = AUDIT_LOG.filter(a => (role==='all'||a.role===role) &&
+    (q==='' || a.action.toLowerCase().includes(q) || a.target.toLowerCase().includes(q) || a.user.toLowerCase().includes(q)));
+  const tbl = document.getElementById('tbl-audit');
+  tbl.querySelector('thead').innerHTML = `<tr><th>時間</th><th>操作者</th><th>角色</th><th>動作</th><th>對象</th><th>IP</th></tr>`;
+  tbl.querySelector('tbody').innerHTML = rows.slice(0,40).map(a=>`
+    <tr><td>${a.time}</td><td class="wrap">${a.user}</td><td><span class="pill pill-info">${a.role}</span></td><td class="wrap">${a.action}</td><td class="wrap">${a.target}</td><td>${a.ip}</td></tr>`).join('')
+    || `<tr><td colspan="6" class="empty-hint">沒有符合條件的紀錄</td></tr>`;
+}
+document.getElementById('audit-search').addEventListener('input', renderAuditTable);
+document.getElementById('audit-role-filter').addEventListener('change', renderAuditTable);
+
+/* ============================================================
+   INIT — each section renders independently: if one throws
+   (e.g. the Chart.js CDN was slow/blocked), the rest still load.
+============================================================ */
+function safeRun(name, fn){
+  try { fn(); }
+  catch (err){
+    console.error('[OSC CONTROL] '+name+' failed to render:', err);
+    const view = document.getElementById('view-'+name);
+    if (view){
+      const banner = document.createElement('div');
+      banner.style.cssText = 'margin:16px 0;padding:14px 16px;border:1px dashed var(--rust);color:var(--rust);font-family:var(--mono);font-size:0.74rem;';
+      banner.textContent = '此區塊渲染時發生錯誤（可能是 Chart.js 尚未載入完成），請重新整理頁面。詳情見瀏覽器 Console。';
+      view.querySelector('.view-body')?.prepend(banner);
+    }
+  }
+}
+let __booted = false;
+function boot(){
+  if (__booted) return;
+  __booted = true;
+  safeRun('overview', renderOverview);
+  safeRun('sales', renderSales);
+  safeRun('crm', renderCrm);
+  safeRun('traffic', renderTraffic);
+  safeRun('marketing', renderMarketing);
+  safeRun('inventory', renderInventory);
+  safeRun('system', renderSystem);
+}
+window.__oscBoot = boot;
+if (typeof Chart === 'undefined'){
+  // Chart.js CDN hasn't resolved yet (this script tag ran before the CDN <script> finished) —
+  // wait for the window load event, which fires after all external scripts have settled.
+  window.addEventListener('load', boot, { once: true });
+} else {
+  boot();
+}
+</script>
+</body>
+</html>
