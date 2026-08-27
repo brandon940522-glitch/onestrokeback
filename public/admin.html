@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSC CONTROL — 後台管理系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0a0a0a; --offwhite:#EDE9E1; --white:#ffffff;
+  --steel-dim:#6b7075; --line-light:rgba(10,10,10,0.12); --ink:#E8B23D;
+  --mono:"JetBrains Mono",monospace; --label:"Space Grotesk",sans-serif;
+}
+*{ box-sizing:border-box; }
+body{ margin:0; background:var(--offwhite); color:var(--black); font-family:"Inter",sans-serif; }
+.shell{ display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
+.sidebar{ background:var(--black); color:var(--offwhite); padding:20px; display:flex; flex-direction:column; gap:20px; }
+.brand{ font-family:var(--label); font-weight:700; font-size:1.1rem; color:var(--ink); }
+.nav button{ display:block; width:100%; text-align:left; padding:10px; background:none; border:0; color:#fff; cursor:pointer; font-family:var(--label); }
+.nav button.active{ background:rgba(232,178,61,0.2); color:var(--ink); }
+.main{ padding:30px; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:20px; }
+.kpi-card{ background:#fff; padding:20px; border:1px solid var(--line-light); }
+.kpi-val{ font-size:1.5rem; font-family:var(--mono); font-weight:bold; margin-top:5px; }
+table{ width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line-light); }
+th, td{ padding:12px; text-align:left; border-bottom:1px solid var(--line-light); font-family:var(--mono); font-size:0.85rem; }
+th{ background:#E3DED3; font-family:var(--label); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">OSC CONTROL</div>
+    <div class="nav">
+      <button class="active" onclick="showSection('orders')">01 訂單與銷售 (真實)</button>
+      <button onclick="showSection('products')">02 商品與庫存 (真實)</button>
+      <button onclick="showSection('customers')">03 會員名單 (真實)</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section id="sec-orders">
+      <h2>01 · 訂單管理 API 連動</h2>
+      <div class="kpi-row">
+        <div class="kpi-card"><div>累積營業額</div><div class="kpi-val" id="total-revenue">NT$ 0</div></div>
+        <div class="kpi-card"><div>總訂單筆數</div><div class="kpi-val" id="total-orders-count">0 筆</div></div>
+      </div>
+      <table>
+        <thead><tr><th>訂單編號</th><th>顧客</th><th>Email</th><th>金額</th><th>狀態</th><th>下單時間</th></tr></thead>
+        <tbody id="tbl-orders"><tr><td colspan="6">載入中...</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="sec-products" style="display:none;">
+      <h2>02 · 商品庫存 API 連動</h2>
+      <table>
+        <thead><tr><th>商品 ID</th><th>商品名稱</th><th>單價</th><th>當前真實庫存</th></tr></thead>
+        <tbody id="tbl-products"><tr><td colspan="4">載入中...</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="sec-customers" style="display:none;">
+      <h2>03 · 會員名單 API 連動</h2>
+      <table>
+        <thead><tr><th>會員 ID</th><th>姓名</th><th>Email</th><th>累積消費額</th><th>註冊時間</th></tr></thead>
+        <tbody id="tbl-customers"><tr><td colspan="5">載入中...</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+</div>
+
+<script>
+const API_BASE = '';
+
+// 載入訂單資料
+async function loadOrders() {
+  const res = await fetch('/api/orders');
+  const result = await res.json();
+  const tbody = document.getElementById('tbl-orders');
+  
+  if (result.success && result.data.length > 0) {
+    let totalRev = 0;
+    tbody.innerHTML = result.data.map(o => {
+      if (o.status === 'paid') totalRev += o.total_amount;
+      return `<tr>
+        <td>${o.order_no}</td>
+        <td>${o.customer_name}</td>
+        <td>${o.customer_email}</td>
+        <td>NT$ ${o.total_amount.toLocaleString()}</td>
+        <td><b style="color:${o.status==='paid'?'green':'orange'}">${o.status}</b></td>
+        <td>${new Date(o.created_at).toLocaleString()}</td>
+      </tr>`;
+    }).join('');
+    
+    document.getElementById('total-revenue').innerText = `NT$ ${totalRev.toLocaleString()}`;
+    document.getElementById('total-orders-count').innerText = `${result.data.length} 筆`;
+  } else {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">尚無真實訂單</td></tr>`;
+  }
+}
+
+// 載入商品資料
+async function loadProducts() {
+  const res = await fetch('/api/products');
+  const result = await res.json();
+  const tbody = document.getElementById('tbl-products');
+  tbody.innerHTML = result.data.map(p => `
+    <tr>
+      <td>${p.id}</td>
+      <td>${p.name}</td>
+      <td>NT$ ${p.price.toLocaleString()}</td>
+      <td><b style="color:${p.stock<10?'red':'black'}">${p.stock} 件</b></td>
+    </tr>
+  `).join('');
+}
+
+// 載入會員資料
+async function loadCustomers() {
+  const res = await fetch('/api/customers');
+  const result = await res.json();
+  const tbody = document.getElementById('tbl-customers');
+  if (result.data.length > 0) {
+    tbody.innerHTML = result.data.map(c => `
+      <tr>
+        <td>${c.id}</td>
+        <td>${c.name}</td>
+        <td>${c.email}</td>
+        <td>NT$ ${c.total_spent.toLocaleString()}</td>
+        <td>${new Date(c.created_at).toLocaleDateString()}</td>
+      </tr>
+    `).join('');
+  } else {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">尚無會員紀錄</td></tr>`;
+  }
+}
+
+function showSection(type) {
+  document.getElementById('sec-orders').style.display = type === 'orders' ? 'block' : 'none';
+  document.getElementById('sec-products').style.display = type === 'products' ? 'block' : 'none';
+  document.getElementById('sec-customers').style.display = type === 'customers' ? 'block' : 'none';
+}
+
+// 初始讀取
+loadOrders();
+loadProducts();
+loadCustomers();
+</script>
+</body>
+</html>
