@@ -71,67 +71,80 @@ th{ background:#E3DED3; font-family:var(--label); }
 </div>
 
 <script>
-const API_BASE = '';
+// 設定本機後端 API 伺服器網址
+const API_BASE = 'http://localhost:3000';
 
 // 載入訂單資料
 async function loadOrders() {
-  const res = await fetch('/api/orders');
-  const result = await res.json();
-  const tbody = document.getElementById('tbl-orders');
-  
-  if (result.success && result.data.length > 0) {
-    let totalRev = 0;
-    tbody.innerHTML = result.data.map(o => {
-      if (o.status === 'paid') totalRev += o.total_amount;
-      return `<tr>
-        <td>${o.order_no}</td>
-        <td>${o.customer_name}</td>
-        <td>${o.customer_email}</td>
-        <td>NT$ ${o.total_amount.toLocaleString()}</td>
-        <td><b style="color:${o.status==='paid'?'green':'orange'}">${o.status}</b></td>
-        <td>${new Date(o.created_at).toLocaleString()}</td>
-      </tr>`;
-    }).join('');
+  try {
+    const res = await fetch(`${API_BASE}/api/orders`);
+    const result = await res.json();
+    const tbody = document.getElementById('tbl-orders');
     
-    document.getElementById('total-revenue').innerText = `NT$ ${totalRev.toLocaleString()}`;
-    document.getElementById('total-orders-count').innerText = `${result.data.length} 筆`;
-  } else {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">尚無真實訂單</td></tr>`;
+    if (result.success && result.data.length > 0) {
+      let totalRev = 0;
+      tbody.innerHTML = result.data.map(o => {
+        if (o.status === 'paid') totalRev += o.total_amount;
+        return `<tr>
+          <td>${o.order_no}</td>
+          <td>${o.customer_name}</td>
+          <td>${o.customer_email}</td>
+          <td>NT$ ${o.total_amount.toLocaleString()}</td>
+          <td><b style="color:${o.status==='paid'?'green':'orange'}">${o.status}</b></td>
+          <td>${new Date(o.created_at).toLocaleString()}</td>
+        </tr>`;
+      }).join('');
+      
+      document.getElementById('total-revenue').innerText = `NT$ ${totalRev.toLocaleString()}`;
+      document.getElementById('total-orders-count').innerText = `${result.data.length} 筆`;
+    } else {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">尚無真實訂單</td></tr>`;
+    }
+  } catch (err) {
+    document.getElementById('tbl-orders').innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">連線失敗，請確認 node server.js 是否有啟動！</td></tr>`;
   }
 }
 
 // 載入商品資料
 async function loadProducts() {
-  const res = await fetch('/api/products');
-  const result = await res.json();
-  const tbody = document.getElementById('tbl-products');
-  tbody.innerHTML = result.data.map(p => `
-    <tr>
-      <td>${p.id}</td>
-      <td>${p.name}</td>
-      <td>NT$ ${p.price.toLocaleString()}</td>
-      <td><b style="color:${p.stock<10?'red':'black'}">${p.stock} 件</b></td>
-    </tr>
-  `).join('');
+  try {
+    const res = await fetch(`${API_BASE}/api/products`);
+    const result = await res.json();
+    const tbody = document.getElementById('tbl-products');
+    tbody.innerHTML = result.data.map(p => `
+      <tr>
+        <td>${p.id}</td>
+        <td>${p.name}</td>
+        <td>NT$ ${p.price.toLocaleString()}</td>
+        <td><b style="color:${p.stock<10?'red':'black'}">${p.stock} 件</b></td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    document.getElementById('tbl-products').innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">連線失敗！</td></tr>`;
+  }
 }
 
 // 載入會員資料
 async function loadCustomers() {
-  const res = await fetch('/api/customers');
-  const result = await res.json();
-  const tbody = document.getElementById('tbl-customers');
-  if (result.data.length > 0) {
-    tbody.innerHTML = result.data.map(c => `
-      <tr>
-        <td>${c.id}</td>
-        <td>${c.name}</td>
-        <td>${c.email}</td>
-        <td>NT$ ${c.total_spent.toLocaleString()}</td>
-        <td>${new Date(c.created_at).toLocaleDateString()}</td>
-      </tr>
-    `).join('');
-  } else {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">尚無會員紀錄</td></tr>`;
+  try {
+    const res = await fetch(`${API_BASE}/api/customers`);
+    const result = await res.json();
+    const tbody = document.getElementById('tbl-customers');
+    if (result.data && result.data.length > 0) {
+      tbody.innerHTML = result.data.map(c => `
+        <tr>
+          <td>${c.id}</td>
+          <td>${c.name}</td>
+          <td>${c.email}</td>
+          <td>NT$ ${c.total_spent.toLocaleString()}</td>
+          <td>${new Date(c.created_at).toLocaleDateString()}</td>
+        </tr>
+      `).join('');
+    } else {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">尚無會員紀錄</td></tr>`;
+    }
+  } catch (err) {
+    document.getElementById('tbl-customers').innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">連線失敗！</td></tr>`;
   }
 }
 
@@ -139,6 +152,12 @@ function showSection(type) {
   document.getElementById('sec-orders').style.display = type === 'orders' ? 'block' : 'none';
   document.getElementById('sec-products').style.display = type === 'products' ? 'block' : 'none';
   document.getElementById('sec-customers').style.display = type === 'customers' ? 'block' : 'none';
+  
+  // 切換頁籤的樣式變更
+  const btns = document.querySelectorAll('.nav button');
+  btns[0].classList.toggle('active', type === 'orders');
+  btns[1].classList.toggle('active', type === 'products');
+  btns[2].classList.toggle('active', type === 'customers');
 }
 
 // 初始讀取
