@@ -14,37 +14,64 @@
 }
 *{ box-sizing:border-box; }
 body{ margin:0; background:var(--offwhite); color:var(--black); font-family:"Inter",sans-serif; }
-.shell{ display:grid; grid-template-columns:220px 1fr; min-height:100vh; }
-.sidebar{ background:var(--black); color:var(--offwhite); padding:20px; display:flex; flex-direction:column; gap:20px; }
-.brand{ font-family:var(--label); font-weight:700; font-size:1.1rem; color:var(--ink); }
-.nav button{ display:block; width:100%; text-align:left; padding:10px; background:none; border:0; color:#fff; cursor:pointer; font-family:var(--label); }
-.nav button.active{ background:rgba(232,178,61,0.2); color:var(--ink); }
+.shell{ display:grid; grid-template-columns:240px 1fr; min-height:100vh; }
+.sidebar{ background:var(--black); color:var(--offwhite); padding:24px 16px; display:flex; flex-direction:column; gap:20px; }
+.brand{ font-family:var(--label); font-weight:700; font-size:1.1rem; color:var(--ink); letter-spacing:1px; margin-bottom:10px; }
+.nav-group-title{ font-size:0.7rem; color:var(--steel-dim); font-family:var(--label); text-transform:uppercase; margin:10px 0 5px 10px; }
+.nav button{ display:block; width:100%; text-align:left; padding:10px 12px; background:none; border:0; color:#aaa; cursor:pointer; font-family:var(--label); font-size:0.85rem; border-radius:4px; margin-bottom:2px; }
+.nav button:hover{ color:#fff; background:rgba(255,255,255,0.05); }
+.nav button.active{ background:rgba(232,178,61,0.15); color:var(--ink); font-weight:bold; }
 .main{ padding:30px; }
-.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:20px; }
-.kpi-card{ background:#fff; padding:20px; border:1px solid var(--line-light); }
-.kpi-val{ font-size:1.5rem; font-family:var(--mono); font-weight:bold; margin-top:5px; }
-table{ width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line-light); }
+.section-title{ font-family:var(--label); font-size:1.4rem; margin-top:0; margin-bottom:20px; font-weight:700; }
+.kpi-row{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px; margin-bottom:25px; }
+.kpi-card{ background:#fff; padding:20px; border:1px solid var(--line-light); position:relative; }
+.kpi-label{ font-size:0.8rem; color:var(--steel-dim); font-family:var(--label); text-transform:uppercase; }
+.kpi-val{ font-size:1.6rem; font-family:var(--mono); font-weight:bold; margin-top:8px; }
+table{ width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line-light); margin-bottom:20px; }
 th, td{ padding:12px; text-align:left; border-bottom:1px solid var(--line-light); font-family:var(--mono); font-size:0.85rem; }
-th{ background:#E3DED3; font-family:var(--label); }
+th{ background:#E3DED3; font-family:var(--label); font-weight:600; }
+.badge{ padding:3px 8px; border-radius:3px; font-size:0.75rem; font-weight:bold; }
+.badge-success{ background:#e6f4ea; color:#137333; }
+.badge-warning{ background:#fef7e0; color:#b06000; }
+.badge-danger{ background:#fce8e6; color:#c5221f; }
 </style>
 </head>
 <body>
 <div class="shell">
   <aside class="sidebar">
-    <div class="brand">OSC CONTROL</div>
+    <div class="brand">OSC CONTROL<br><span style="font-size:0.7rem; color:#888;">ADMIN SYSTEM</span></div>
+    
     <div class="nav">
-      <button class="active" onclick="showSection('orders')">01 訂單與銷售 (真實)</button>
-      <button onclick="showSection('products')">02 商品與庫存 (真實)</button>
-      <button onclick="showSection('customers')">03 會員名單 (真實)</button>
+      <div class="nav-group-title">總覽</div>
+      <button onclick="showSection('dashboard')">00 控制台總覽</button>
+      
+      <div class="nav-group-title">數據系統</div>
+      <button class="active" onclick="showSection('orders')">01 訂單與銷售 (真實API)</button>
+      <button onclick="showSection('customers')">02 客戶與會員 (真實API)</button>
+      <button onclick="showSection('products')">03 庫存與商品 (真實API)</button>
+      <button onclick="showSection('analytics')">04 流量與行為數據</button>
+      <button onclick="showSection('marketing')">05 行銷廣告與轉換</button>
+      <button onclick="showSection('audit')">06 系統效能與稽核</button>
     </div>
   </aside>
 
   <main class="main">
-    <section id="sec-orders">
-      <h2>01 · 訂單管理 API 連動</h2>
+    <!-- 00 控制台總覽 -->
+    <section id="sec-dashboard" style="display:none;">
+      <h2 class="section-title">00 · 控制台總覽</h2>
       <div class="kpi-row">
-        <div class="kpi-card"><div>累積營業額</div><div class="kpi-val" id="total-revenue">NT$ 0</div></div>
-        <div class="kpi-card"><div>總訂單筆數</div><div class="kpi-val" id="total-orders-count">0 筆</div></div>
+        <div class="kpi-card"><div class="kpi-label">今日營業額</div><div class="kpi-val" id="dash-today-rev">NT$ 12,800</div></div>
+        <div class="kpi-card"><div class="kpi-label">今日訂單</div><div class="kpi-val">8 筆</div></div>
+        <div class="kpi-card"><div class="kpi-label">全站轉換率</div><div class="kpi-val">2.84%</div></div>
+      </div>
+    </section>
+
+    <!-- 01 訂單與銷售 (真實API) -->
+    <section id="sec-orders">
+      <h2 class="section-title">01 · 訂單管理 (SQLite 資料庫連動)</h2>
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-label">累積營業額</div><div class="kpi-val" id="total-revenue">NT$ 0</div></div>
+        <div class="kpi-card"><div class="kpi-label">總訂單筆數</div><div class="kpi-val" id="total-orders-count">0 筆</div></div>
       </div>
       <table>
         <thead><tr><th>訂單編號</th><th>顧客</th><th>Email</th><th>金額</th><th>狀態</th><th>下單時間</th></tr></thead>
@@ -52,26 +79,50 @@ th{ background:#E3DED3; font-family:var(--label); }
       </table>
     </section>
 
+    <!-- 02 客戶與會員 (真實API) -->
+    <section id="sec-customers" style="display:none;">
+      <h2 class="section-title">02 · 客戶與會員名單 (SQLite 資料庫連動)</h2>
+      <table>
+        <thead><tr><th>會員 ID</th><th>姓名</th><th>Email</th><th>累積消費額</th><th>註冊時間</th></tr></thead>
+        <tbody id="tbl-customers"><tr><td colspan="5">載入中...</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- 03 庫存與商品 (真實API) -->
     <section id="sec-products" style="display:none;">
-      <h2>02 · 商品庫存 API 連動</h2>
+      <h2 class="section-title">03 · 商品庫存管理 (SQLite 資料庫連動)</h2>
       <table>
         <thead><tr><th>商品 ID</th><th>商品名稱</th><th>單價</th><th>當前真實庫存</th></tr></thead>
         <tbody id="tbl-products"><tr><td colspan="4">載入中...</td></tr></tbody>
       </table>
     </section>
 
-    <section id="sec-customers" style="display:none;">
-      <h2>03 · 會員名單 API 連動</h2>
-      <table>
-        <thead><tr><th>會員 ID</th><th>姓名</th><th>Email</th><th>累積消費額</th><th>註冊時間</th></tr></thead>
-        <tbody id="tbl-customers"><tr><td colspan="5">載入中...</td></tr></tbody>
-      </table>
+    <!-- 04 流量與行為數據 -->
+    <section id="sec-analytics" style="display:none;">
+      <h2 class="section-title">04 · 流量與行為數據</h2>
+      <div class="kpi-row">
+        <div class="kpi-card"><div class="kpi-label">總瀏覽量 (PV)</div><div class="kpi-val">124,500</div></div>
+        <div class="kpi-card"><div class="kpi-label">訪客數 (UV)</div><div class="kpi-val">38,200</div></div>
+        <div class="kpi-card"><div class="kpi-label">全站轉化率</div><div class="kpi-val">2.84%</div></div>
+      </div>
+    </section>
+
+    <!-- 05 行銷廣告 -->
+    <section id="sec-marketing" style="display:none;">
+      <h2 class="section-title">05 · 行銷廣告與轉換</h2>
+      <p style="color:var(--steel-dim);">模組準備中...</p>
+    </section>
+
+    <!-- 06 系統效能 -->
+    <section id="sec-audit" style="display:none;">
+      <h2 class="section-title">06 · 系統效能與稽核</h2>
+      <p style="color:var(--steel-dim);">伺服器狀態：正常 (Node.js Express + SQLite3)</p>
     </section>
   </main>
 </div>
 
 <script>
-// 設定本機後端 API 伺服器網址
+// 設定 API 連線網址
 const API_BASE = 'http://localhost:3000';
 
 // 載入訂單資料
@@ -85,12 +136,13 @@ async function loadOrders() {
       let totalRev = 0;
       tbody.innerHTML = result.data.map(o => {
         if (o.status === 'paid') totalRev += o.total_amount;
+        const statusClass = o.status === 'paid' ? 'badge-success' : 'badge-warning';
         return `<tr>
           <td>${o.order_no}</td>
           <td>${o.customer_name}</td>
           <td>${o.customer_email}</td>
           <td>NT$ ${o.total_amount.toLocaleString()}</td>
-          <td><b style="color:${o.status==='paid'?'green':'orange'}">${o.status}</b></td>
+          <td><span class="badge ${statusClass}">${o.status}</span></td>
           <td>${new Date(o.created_at).toLocaleString()}</td>
         </tr>`;
       }).join('');
@@ -98,14 +150,14 @@ async function loadOrders() {
       document.getElementById('total-revenue').innerText = `NT$ ${totalRev.toLocaleString()}`;
       document.getElementById('total-orders-count').innerText = `${result.data.length} 筆`;
     } else {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">尚無真實訂單</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">尚無真實訂單紀錄</td></tr>`;
     }
   } catch (err) {
     document.getElementById('tbl-orders').innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">連線失敗，請確認 node server.js 是否有啟動！</td></tr>`;
   }
 }
 
-// 載入商品資料
+// 載入商品庫存資料
 async function loadProducts() {
   try {
     const res = await fetch(`${API_BASE}/api/products`);
@@ -116,7 +168,7 @@ async function loadProducts() {
         <td>${p.id}</td>
         <td>${p.name}</td>
         <td>NT$ ${p.price.toLocaleString()}</td>
-        <td><b style="color:${p.stock<10?'red':'black'}">${p.stock} 件</b></td>
+        <td><b style="color:${p.stock<10?'#c5221f':'#0a0a0a'}">${p.stock} 件</b></td>
       </tr>
     `).join('');
   } catch (err) {
@@ -148,19 +200,22 @@ async function loadCustomers() {
   }
 }
 
+// 切換頁籤
 function showSection(type) {
-  document.getElementById('sec-orders').style.display = type === 'orders' ? 'block' : 'none';
-  document.getElementById('sec-products').style.display = type === 'products' ? 'block' : 'none';
-  document.getElementById('sec-customers').style.display = type === 'customers' ? 'block' : 'none';
-  
-  // 切換頁籤的樣式變更
+  const sections = ['dashboard', 'orders', 'customers', 'products', 'analytics', 'marketing', 'audit'];
+  sections.forEach(sec => {
+    const el = document.getElementById(`sec-${sec}`);
+    if (el) el.style.display = (sec === type) ? 'block' : 'none';
+  });
+
+  // 更新選單點擊樣式
   const btns = document.querySelectorAll('.nav button');
-  btns[0].classList.toggle('active', type === 'orders');
-  btns[1].classList.toggle('active', type === 'products');
-  btns[2].classList.toggle('active', type === 'customers');
+  btns.forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${type}'`));
+  });
 }
 
-// 初始讀取
+// 頁面初始化載入
 loadOrders();
 loadProducts();
 loadCustomers();
