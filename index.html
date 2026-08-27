@@ -1073,6 +1073,51 @@ window.addEventListener('DOMContentLoaded', () => {
   initEvents();
   switchView('overview');
 });
+</script><script>
+  // 1. 設定後端伺服器的 API 網址（本機開發使用 localhost:3000）
+  const API_URL = 'http://localhost:3000';
+
+  // 2. 當網頁載入完成時，自動向資料庫請求商品資料
+  document.addEventListener('DOMContentLoaded', () => {
+    loadProductsFromDB();
+  });
+
+  // 3. 從資料庫讀取商品的函式
+  async function loadProductsFromDB() {
+    try {
+      const response = await fetch(`${API_URL}/api/products`);
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('成功從資料庫取得商品資料:', result.data);
+        // 在這裡你可以把資料帶入你的商品列表 HTML 中
+      }
+    } catch (error) {
+      console.error('無法連線至後端資料庫，請確認 node server.js 是否有啟動：', error);
+    }
+  }
+
+  // 4. 顧客點擊結帳時呼叫的函式（送出訂單到資料庫）
+  async function submitOrder(customerData, cartItems) {
+    try {
+      const response = await fetch(`${API_URL}/api/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer_name: customerData.name,
+          customer_email: customerData.email,
+          items: cartItems
+        })
+      });
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('下單成功！訂單編號：' + result.order_no);
+      }
+    } catch (error) {
+      alert('下單失敗，請稍後再試');
+    }
+  }
 </script>
 </body>
 </html>
